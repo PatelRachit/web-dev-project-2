@@ -4,6 +4,7 @@ import trimRequest from 'trim-request'
 import '../config/passport.js'
 import { login, logout, verifyUserToken } from '../controller/auth/index.js'
 import { validateLogin } from '../controller/auth/validators/validateLogin.js'
+
 const requireAuth = passport.authenticate('jwt', {
   session: false,
 })

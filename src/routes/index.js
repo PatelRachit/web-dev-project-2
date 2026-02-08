@@ -1,9 +1,11 @@
 import express from 'express'
 import authRouter from './auth.js'
+import createUser from './user.js'
 
 const router = express.Router()
 
 router.use('/', authRouter)
+router.use('/user', createUser)
 
 router.get('/test', (req, res) => {
   try {

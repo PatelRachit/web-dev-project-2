@@ -1,52 +1,47 @@
 import bcrypt from 'bcrypt'
 import mongoose, { Schema } from 'mongoose'
-import { encrypt } from '../middleware/auth/encrypt.js'
 
-const UserSchema = new Schema({
-  email: {
-    type: String,
-    lowercase: true,
-    unique: true,
-    required: true,
+const UserSchema = new Schema(
+  {
+    email: {
+      type: String,
+      lowercase: true,
+      unique: true,
+      required: true,
+      trim: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      select: false,
+    },
   },
-  password: {
-    type: String,
-    required: true,
+  {
+    timestamps: true,
   },
-})
+)
 
-const hash = (user, salt, next) => {
-  bcrypt.hash(user.password, salt, (error, newHash) => {
-    if (error) {
-      return next(error)
-    }
-    user.password = newHash
-    return next()
-  })
-}
+// Hash password before saving
+UserSchema.pre('save', async function () {
+  if (!this.isModified('password')) return
 
-const genSalt = (user, SALT_FACTOR, next) => {
-  bcrypt.genSalt(SALT_FACTOR, (err, salt) => {
-    if (err) {
-      return next(err)
-    }
-    return hash(user, salt, next)
-  })
-}
-
-UserSchema.pre('save', function (next) {
-  const SALT_FACTOR = 5
-
-  if (!this.isModified('password')) {
-    return next()
+  try {
+    const SALT_ROUNDS = 10
+    this.password = await bcrypt.hash(this.password, SALT_ROUNDS)
+  } catch (error) {
+    throw new Error(`Password hashing failed: ${error.message}`, {
+      cause: error,
+    })
   }
-  return genSalt(this, SALT_FACTOR, next)
 })
 
-UserSchema.methods.comparePassword = function (passwordAttempt, cb) {
-  bcrypt.compare(passwordAttempt, this.password, (err, isMatch) =>
-    err ? cb(err) : cb(null, isMatch),
-  )
+// Method to compare passwords
+UserSchema.methods.comparePassword = async function (passwordAttempt) {
+  try {
+    return await bcrypt.compare(passwordAttempt, this.password)
+  } catch (error) {
+    throw new Error('Password comparison failed', { cause: error })
+  }
 }
 
 export default mongoose.model('User', UserSchema)
