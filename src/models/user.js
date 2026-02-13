@@ -3,6 +3,11 @@ import mongoose, { Schema } from 'mongoose'
 
 const UserSchema = new Schema(
   {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     email: {
       type: String,
       lowercase: true,
@@ -14,6 +19,26 @@ const UserSchema = new Schema(
       type: String,
       required: true,
       select: false,
+    },
+    major: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    graduationYear: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    favourites: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Space',
+      },
+    ],
+    totalCheckIns: {
+      type: Number,
+      default: 0,
     },
   },
   {

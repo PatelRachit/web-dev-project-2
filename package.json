@@ -8,7 +8,8 @@
     "node": ">=18.19.0"
   },
   "scripts": {
-    "dev": "nodemon ./src/server.js",
+    "dev": "set NODE_OPTIONS=--openssl-legacy-provider && nodemon ./src/server.js",
+    "start": "set NODE_OPTIONS=--openssl-legacy-provider && node ./src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write \"src/**/*.js\"",
     "lint": "eslint .",
@@ -38,6 +39,7 @@
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.1.0",
     "mongoose": "^9.1.6",
     "morgan": "^1.10.1",
     "nodemailer": "^8.0.1",

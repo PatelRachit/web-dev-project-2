@@ -1,25 +1,23 @@
-import mongoose from 'mongoose'
+import { MongoClient } from 'mongodb'
+import dotenv from 'dotenv'
 
-export default async function initMongo() {
+dotenv.config()
+
+const uri = process.env.MONGO_URI
+const client = new MongoClient(uri)
+
+export default async function connectDB() {
   try {
-    let dbStatus
-    if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect(process.env.MONGO_URI, {})
-      dbStatus = '*    DB Connection: OK\n****************************\n'
-    } else {
-      console.log('+++++++++++++++++-=object')
-      dbStatus =
-        '*    DB Connection: Already Running \n****************************\n'
-    }
-
-    // Prints initialization
+    await client.connect()
     console.log('****************************')
     console.log('*    Starting Server')
     console.log('*    Database: MongoDB')
-    console.log(dbStatus)
-    return mongoose.connection
-  } catch (error) {
-    console.log('***DB ERROR***')
-    console.log({ error })
+    console.log('****************************')
+
+    client.db('spotcheck')
+  } catch (err) {
+    console.error('Error connecting to MongoDB:', err)
+  } finally {
+    await client.close() // close connection after operation
   }
 }
