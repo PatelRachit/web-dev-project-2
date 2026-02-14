@@ -1,20 +1,16 @@
 import { getDb } from '../../../config/mongo.js'
 import { hashPassword } from '../../../middleware/auth/hashPassword.js'
+
 /**
- * Creates a new item in database
+ * Creates a new admin in database
  */
-export const createUser = async (userData) => {
+export const createAdminInDb = async ({ email, password }) => {
   const usersCollection = getDb().collection('users')
 
   const newUser = {
-    name: userData.name,
-    email: userData.email.toLowerCase(),
-    password: await hashPassword(userData.password),
-    major: userData.major,
-    graduationYear: userData.graduationYear,
-    favourites: [],
-    totalCheckIns: 0,
-    isAdmin: false,
+    email: email.toLowerCase(),
+    password: await hashPassword(password),
+    isAdmin: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   }

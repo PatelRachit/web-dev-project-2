@@ -1,11 +1,13 @@
 import express from 'express'
 import authRouter from './auth.js'
-import createUser from './user.js'
+import userRouter from './user.js'
+import adminRouter from './admin.js'
 
 const router = express.Router()
 
 router.use('/', authRouter)
-router.use('/user', createUser)
+router.use('/user', userRouter)
+router.use('/admin', adminRouter)
 
 router.get('/test', (req, res) => {
   try {
