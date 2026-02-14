@@ -1,24 +1,23 @@
-import User from '../../../models/user.js'
-import { buildErrObject } from '../../../utils/buildErrObject.js'
-
+import { getDb } from '../../../config/mongo.js'
+import { hashPassword } from '../../../middleware/auth/hashPassword.js'
 /**
  * Creates a new item in database
  */
-const createItemInDb = async (userData) => {
-  try {
-    const user = new User({
-      ...userData,
-    })
+export const createUser = async (userData) => {
+  const usersCollection = getDb().collection('users')
 
-    let item = await user.save()
-
-    item = item.toObject()
-    delete item.password
-
-    return item
-  } catch (err) {
-    throw buildErrObject(422, err.message)
+  const newUser = {
+    name: userData.name,
+    email: userData.email.toLowerCase(),
+    password: await hashPassword(userData.password),
+    major: userData.major,
+    graduationYear: userData.graduationYear,
+    favourites: [],
+    totalCheckIns: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
-}
 
-export { createItemInDb }
+  const result = await usersCollection.insertOne(newUser)
+  return await usersCollection.findOne({ _id: result.insertedId })
+}

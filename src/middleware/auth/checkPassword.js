@@ -1,9 +1,9 @@
 import { buildErrObject } from '../../utils/buildErrObject.js'
+import bcrypt from 'bcrypt'
 
 const checkPassword = async (password, user) => {
   try {
-    const isMatch = await user.comparePassword(password)
-    return isMatch
+    return await bcrypt.compare(password, user.password)
   } catch (error) {
     throw buildErrObject(422, error.message)
   }

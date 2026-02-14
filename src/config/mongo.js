@@ -5,6 +5,7 @@ dotenv.config()
 
 const uri = process.env.MONGO_URI
 const client = new MongoClient(uri)
+let dbConnection = null
 
 export default async function connectDB() {
   try {
@@ -14,10 +15,14 @@ export default async function connectDB() {
     console.log('*    Database: MongoDB')
     console.log('****************************')
 
-    client.db('spotcheck')
+    dbConnection = client.db(process.env.DB_NAME)
   } catch (err) {
-    console.error('Error connecting to MongoDB:', err)
-  } finally {
-    await client.close() // close connection after operation
+    console.log('Error connecting to MongoDB:', err)
+    throw err
   }
+}
+
+export function getDb() {
+  if (!dbConnection) throw new Error('MongoDB not initialized yet')
+  return dbConnection
 }

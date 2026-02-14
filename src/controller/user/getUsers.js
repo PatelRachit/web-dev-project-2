@@ -1,6 +1,6 @@
 import { STATUS_CODE } from '../../constant/index.js'
 import { handleError } from '../../utils/index.js'
-import { getAllUsers } from './helpers/getAllUsers.js'
+import { getAllUsers } from './helpers/getAllUsers.js' // updated import
 
 const getUsers = async (req, res) => {
   try {

@@ -1,11 +1,9 @@
-import { STATUS_CODE } from '../../../constant/index.js'
-import user from '../../../models/user.js'
-import { buildErrObject } from '../../../utils/index.js'
+import { getDb } from '../../../config/mongo.js'
 
 export const getAllUsers = async () => {
-  try {
-    return await user.find({}).select('-password')
-  } catch (err) {
-    throw buildErrObject(STATUS_CODE.UNPROCESSABLE, err.message)
-  }
+  const usersCollection = getDb().collection('users')
+
+  return await usersCollection
+    .find({}, { projection: { password: 0 } })
+    .toArray()
 }

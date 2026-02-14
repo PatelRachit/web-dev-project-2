@@ -11,8 +11,6 @@ const verifyUserToken = async (req, res) => {
     let userId = await getUserIdFromToken(encryptedToken)
     userId = await isIDGood(userId)
     const user = await findUserById(userId)
-    // Removes user info from response
-    // delete response.user
     res.status(STATUS_CODE.SUCCESS).json({ user })
   } catch (error) {
     console.log(error)
