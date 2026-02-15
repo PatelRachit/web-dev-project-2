@@ -1,15 +1,10 @@
 import * as Spaces from '../../models/spaces.js';
 
-/**
- * PUT /api/spaces/:id
- * Update a space (Admin only)
- */
 export async function updateSpace(req, res) {
   try {
     const { id } = req.params;
     const updates = req.body;
     
-    // Don't allow updating _id or createdAt
     delete updates._id;
     delete updates.createdAt;
     

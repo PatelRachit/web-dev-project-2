@@ -2,10 +2,6 @@ import { STATUS_CODE } from '../../constant/statusCode.js'
 import * as Spaces from '../../models/spaces.js'
 import { handleError } from '../../utils/handleError.js'
 
-/**
- * GET /api/spaces/:id
- * Get a single space by ID with current check-ins
- */
 export async function getSpaceById(req, res) {
   try {
     const { id } = req.params

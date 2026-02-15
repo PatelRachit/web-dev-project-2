@@ -1,14 +1,9 @@
 import * as Spaces from '../../models/spaces.js';
 
-/**
- * POST /api/spaces
- * Create a new space (Admin only)
- */
 export async function createSpace(req, res) {
   try {
     const spaceData = req.body;
     
-    // Validation
     if (!spaceData.name || !spaceData.building || !spaceData.capacity) {
       return res.status(400).json({ 
         success: false,
