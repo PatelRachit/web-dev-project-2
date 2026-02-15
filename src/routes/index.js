@@ -1,15 +1,15 @@
 import express from 'express'
 import authRouter from './auth.js'
-import userRouter from './user.js'
-import adminRouter from './admin.js'
-import spaceRouter from './spaces.js'
+import createUser from './user.js'
+import spacesRouter from './spaces.js'
+import favoritesRouter from './favorites.js'  
 
 const router = express.Router()
 
 router.use('/', authRouter)
-router.use('/user', userRouter)
-router.use('/admin', adminRouter)
-router.use('/space', spaceRouter)
+router.use('/user', createUser)
+router.use('/api/spaces', spacesRouter)
+router.use('/api/favorites', favoritesRouter)  
 
 router.get('/test', (req, res) => {
   try {
