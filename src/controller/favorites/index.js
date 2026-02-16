@@ -1,13 +1,9 @@
 import * as Favorites from '../../models/favorites.js';
 
-/**
- * POST /api/favorites/add
- * Add a space to user's favorites
- */
 export async function addFavorite(req, res) {
   try {
     const { spaceId } = req.body;
-    const userId = req.user._id; // Set by passport JWT auth
+    const userId = req.user._id; 
     
     if (!spaceId) {
       return res.status(400).json({ 
@@ -40,10 +36,6 @@ export async function addFavorite(req, res) {
   }
 }
 
-/**
- * DELETE /api/favorites/remove/:spaceId
- * Remove a space from user's favorites
- */
 export async function removeFavorite(req, res) {
   try {
     const { spaceId } = req.params;
@@ -65,10 +57,6 @@ export async function removeFavorite(req, res) {
   }
 }
 
-/**
- * GET /api/favorites
- * Get all favorite spaces for the user
- */
 export async function getFavorites(req, res) {
   try {
     const userId = req.user._id;

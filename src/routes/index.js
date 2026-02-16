@@ -3,6 +3,7 @@ import authRouter from './auth.js'
 import userRouter from './user.js'
 import spacesRouter from './spaces.js'
 import favoritesRouter from './favorites.js'
+import checkinsRouter from './checkins.js'
 
 const router = express.Router()
 
@@ -10,6 +11,7 @@ router.use('/', authRouter)
 router.use('/user', userRouter)
 router.use('/spaces', spacesRouter)
 router.use('/favorites', favoritesRouter)
+router.use('/checkins', checkinsRouter)
 
 router.get('/test', (req, res) => {
   try {
