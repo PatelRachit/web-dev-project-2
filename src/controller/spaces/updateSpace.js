@@ -1,31 +1,31 @@
-import * as Spaces from '../../models/spaces.js';
+import * as Spaces from '../../models/spaces.js'
 
 export async function updateSpace(req, res) {
   try {
-    const { id } = req.params;
-    const updates = req.body;
-    
-    delete updates._id;
-    delete updates.createdAt;
-    
-    const space = await Spaces.updateSpace(id, updates);
-    
+    const { id } = req.params
+    const updates = req.body
+
+    delete updates._id
+    delete updates.createdAt
+
+    const space = await Spaces.updateSpace(id, updates)
+
     if (!space) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: 'Space not found' 
-      });
+        error: 'Space not found',
+      })
     }
-    
-    res.json({ 
+
+    res.json({
       success: true,
-      space 
-    });
+      space,
+    })
   } catch (error) {
-    console.error('Error updating space:', error);
-    res.status(500).json({ 
+    console.error('Error updating space:', error)
+    res.status(500).json({
       success: false,
-      error: 'Failed to update space' 
-    });
+      error: 'Failed to update space',
+    })
   }
 }
