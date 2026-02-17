@@ -3,6 +3,8 @@ import cors from 'cors'
 import morgan from 'morgan'
 import express from 'express'
 import passport from 'passport'
+import path from 'path'  // ADD THIS
+import { fileURLToPath } from 'url'  // ADD THIS
 import initMongo from './config/mongo.js'
 import './config/passport.js'
 import router from './routes/index.js'
@@ -10,6 +12,9 @@ import { serverConnectionLog } from './utils/serverStartLog.js'
 import { configDotenv } from 'dotenv'
 
 configDotenv()
+
+const __filename = fileURLToPath(import.meta.url)  // ADD THIS
+const __dirname = path.dirname(__filename)  // ADD THIS
 
 const app = express()
 
@@ -27,6 +32,8 @@ app.use(
  */
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+app.use(express.static(path.join(__dirname, '../frontend')))  // CHANGED THIS LINE
+
 
 /**
  * -------------------------- PASSPORT --------------------------

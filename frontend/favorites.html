@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpotCheck - My Favorites</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/favorites.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>SpotCheck</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Dashboard</a></li>
+                <li><a href="spaces.html">Spaces</a></li>
+                <li><a href="favorites.html" class="active">Favorites</a></li>
+                <li><a href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <section class="page-header">
+            <h2>My Favorite Spaces</h2>
+            <p>Quick access to your saved study spots</p>
+        </section>
+
+        <!-- Favorites Grid -->
+        <section class="favorites-section">
+            <div id="loadingSpinner" class="loading">Loading favorites...</div>
+            <div id="favoritesGrid" class="spaces-grid"></div>
+            <div id="noFavorites" class="empty-state" style="display: none;">
+                <p>You haven't added any favorites yet.</p>
+                <a href="spaces.html" class="btn btn-primary">Browse Spaces</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 SpotCheck</p>
+        </div>
+    </footer>
+
+    <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/js/favorites.js"></script>
+</body>
+</html>
