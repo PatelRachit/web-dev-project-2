@@ -328,85 +328,41 @@ Students waste 15-30 minutes daily walking across campus searching for available
 
 ## 4. Design Mockups
 
-### 4.1 Authentication Pages
+### 4.1 Login Page
 
-#### Login Page
+![View Login Page Mockup](./screenshots/login_mockup.png)
 
-```
-[View Login Page Mockup](./screenshots/login_mockup.png)
-```
+### 4.2 Registration Page
 
-#### Registration Page
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         SpotCheck                            │
-│                 Find Your Perfect Study Space                │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│              ┌────────────────────────────┐                 │
-│              │    Create Your Account      │                 │
-│              │                             │                 │
-│              │  Full Name                  │                 │
-│              │  [___________________]      │                 │
-│              │                             │                 │
-│              │  Email                      │                 │
-│              │  [___________________]      │                 │
-│              │                             │                 │
-│              │  Password                   │                 │
-│              │  [___________________]      │                 │
-│              │                             │                 │
-│              │  Confirm Password           │                 │
-│              │  [___________________]      │                 │
-│              │                             │                 │
-│              │  Major                      │                 │
-│              │  [___________________]      │                 │
-│              │                             │                 │
-│              │  Graduation Year            │                 │
-│              │  [▼ Select Year     ]       │                 │
-│              │                             │                 │
-│              │     [   Register   ]        │                 │
-│              │                             │                 │
-│              │  Already have account?      │                 │
-│              │        Login here           │                 │
-│              └────────────────────────────┘                 │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
+![View Login Page Mockup](./screenshots/register_mockup.png)
 
 ---
 
-### 4.2 Dashboard / Home Page
+### 4.3 Dashboard / Home Page
 
-```
-[View Dashboard Mockup](./screenshots/dashboard_mockup.png)
-
-```
+![View Dashboard Mockup](./screenshots/dashboard_mockup.png)
 
 ---
 
-### 4.3 Space Page
+### 4.4 Space Page
 
-```
-[View Dashboard Mockup](./screenshots/spaces_mockup.png)
+![View Dashboard Mockup](./screenshots/spaces_mockup.png)
 
-```
+### 4.5 Space Details Page
 
----
-
-### 4.4 Favorites Page
-
-```
-[View Dashboard Mockup](./screenshots/favourites_mockup.png)
-```
+![View Dashboard Mockup](./screenshots/space_details.png)
 
 ---
 
-### 4.4 Admin Page
+### 4.6 Favorites Page
 
-```
-[View Dashboard Mockup](./screenshots/admin_mockup.png.png)
-```
+![View Dashboard Mockup](./screenshots/favourites_mockup.png)
+
+---
+
+### 4.7 Admin Page
+
+![View Dashboard Mockup](./screenshots/admin_mockup.png)
 
 ---
 
@@ -618,3 +574,7 @@ Students waste 15-30 minutes daily walking across campus searching for available
 ---
 
 _End of Design Document_
+
+```
+
+```
