@@ -20,6 +20,7 @@ const modalClose = document.querySelector('.modal-close')
 
 let allSpaces = []
 let favoriteSpaceIds = new Set()
+let currentCheckedInSpaceId = null
 let currentPage = 1
 // eslint-disable-next-line no-unused-vars
 let totalPages = 1
@@ -29,7 +30,18 @@ const LIMIT = 9
 async function init() {
   await requireAuth()
   showAdminNavIfAdmin()
+  await loadActiveCheckin()
   loadSpaces()
+}
+
+async function loadActiveCheckin() {
+  try {
+    const data = await apiCall('/api/checkins/active')
+    const activeCheckin = data.activeCheckIn
+    currentCheckedInSpaceId = activeCheckin?.space?._id || null
+  } catch {
+    currentCheckedInSpaceId = null
+  }
 }
 
 async function loadFavorites() {
@@ -103,6 +115,7 @@ function createSpaceCard(space) {
         ? 'Filling Up'
         : 'Nearly Full'
   const isFavorite = favoriteSpaceIds.has(space._id)
+  const isCheckedIn = currentCheckedInSpaceId === space._id
   const hoursText = space.is24Hours ? 'Open 24/7' : space.hours?.weekday || null
   const locationParts = []
   if (space.floor) locationParts.push(`Floor ${space.floor}`)
@@ -141,7 +154,9 @@ function createSpaceCard(space) {
                 ${space.amenities?.length ? space.amenities.map((a) => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join('') : ''}
             </div>
             <div class="card-actions">
-                <button class="btn btn-primary view-details-btn" data-id="${space._id}">View Details</button>
+                <button class="btn ${isCheckedIn ? 'btn-success' : 'btn-primary'} view-details-btn" data-id="${space._id}">
+                    ${isCheckedIn ? '✓ Checked In' : 'View Details'}
+                </button>
                 <button class="btn btn-secondary favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-id="${space._id}">
                     ${isFavorite ? 'Remove Favourite' : 'Add Favourite'}
                 </button>
@@ -149,9 +164,14 @@ function createSpaceCard(space) {
         </div>
     `
 
-  card
-    .querySelector('.view-details-btn')
-    .addEventListener('click', () => showSpaceDetails(space._id))
+  const viewBtn = card.querySelector('.view-details-btn')
+  if (isCheckedIn) {
+    viewBtn.disabled = true
+    viewBtn.style.cursor = 'default'
+  } else {
+    viewBtn.addEventListener('click', () => showSpaceDetails(space._id))
+  }
+
   card
     .querySelector('.favorite-btn')
     .addEventListener('click', (e) =>
@@ -173,6 +193,7 @@ async function showSpaceDetails(spaceId) {
       space.capacity,
     )
     const isFavorite = favoriteSpaceIds.has(space._id)
+    const isCheckedIn = currentCheckedInSpaceId === space._id
 
     spaceDetails.innerHTML = `
             <div class="space-detail-header">
@@ -200,7 +221,9 @@ async function showSpaceDetails(spaceId) {
                 </div>
             </div>
             <div class="space-detail-actions">
-                <button class="btn btn-primary" id="modalCheckinBtn">Check In Here</button>
+                <button class="btn ${isCheckedIn ? 'btn-success' : 'btn-primary'}" id="modalCheckinBtn" ${isCheckedIn ? 'disabled' : ''}>
+                    ${isCheckedIn ? '✓ Checked In' : 'Check In Here'}
+                </button>
                 <button class="btn btn-secondary ${isFavorite ? 'is-favorite' : ''}" id="modalFavoriteBtn">
                     ${isFavorite ? 'Remove Favourite' : 'Add Favourite'}
                 </button>
@@ -212,8 +235,10 @@ async function showSpaceDetails(spaceId) {
     document
       .getElementById('modalCheckinBtn')
       .addEventListener('click', async () => {
-        await handleCheckIn(spaceId)
-        spaceModal.style.display = 'none'
+        if (!isCheckedIn) {
+          await handleCheckIn(spaceId)
+          spaceModal.style.display = 'none'
+        }
       })
 
     const modalFavoriteBtn = document.getElementById('modalFavoriteBtn')
@@ -244,6 +269,7 @@ async function handleCheckIn(spaceId) {
       body: JSON.stringify({ spaceId }),
     })
     alert('Checked in successfully!')
+    await loadActiveCheckin()
     loadSpaces(currentPage)
   } catch (error) {
     alert('Error checking in: ' + error.message)
@@ -380,5 +406,134 @@ clearFiltersBtn?.addEventListener('click', () => {
   currentPage = 1
   loadSpaces(1)
 })
+
+async function showSpaceDetails(spaceId) {
+  try {
+    const data = await apiCall(`/api/spaces/${spaceId}`)
+    const space = data.space
+    const occupancyLevel = getOccupancyLevel(
+      space.currentOccupancy || 0,
+      space.capacity,
+    )
+    const occupancyText = formatOccupancy(
+      space.currentOccupancy || 0,
+      space.capacity,
+    )
+    const isFavorite = favoriteSpaceIds.has(space._id)
+    const isCheckedIn = currentCheckedInSpaceId === space._id
+
+    spaceDetails.innerHTML = `
+            <div class="space-detail-header">
+                <h2>${space.name}</h2>
+                <p>${space.building}${space.location ? ' · ' + space.location : ''}</p>
+            </div>
+            <div class="space-detail-occupancy">
+                <h3>Current Occupancy</h3>
+                <p class="occupancy-text">${occupancyText}</p>
+                <span class="occupancy-badge ${occupancyLevel}">
+                    ${occupancyLevel === 'low' ? 'Available' : occupancyLevel === 'medium' ? 'Filling Up' : 'Nearly Full'}
+                </span>
+            </div>
+            <div class="space-detail-info">
+                <h3>About</h3>
+                <p><strong>Category:</strong> ${space.category}</p>
+                <p><strong>Capacity:</strong> ${space.capacity} seats</p>
+                ${space.description ? `<p><strong>Description:</strong> ${space.description}</p>` : ''}
+                ${space.hours ? `<p><strong>Hours:</strong> ${space.is24Hours ? 'Open 24/7' : space.hours.weekday || 'Not specified'}</p>` : ''}
+            </div>
+            <div class="space-detail-amenities">
+                <h3>Amenities</h3>
+                <div class="amenities">
+                    ${space.amenities?.length ? space.amenities.map((a) => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join('') : 'None listed'}
+                </div>
+            </div>
+            <div class="space-detail-actions">
+                <button class="btn ${isCheckedIn ? 'btn-success' : 'btn-primary'}" id="modalCheckinBtn" ${isCheckedIn ? 'disabled' : ''}>
+                    ${isCheckedIn ? '✓ Checked In' : 'Check In Here'}
+                </button>
+                <button class="btn btn-secondary ${isFavorite ? 'is-favorite' : ''}" id="modalFavoriteBtn">
+                    ${isFavorite ? 'Remove Favourite' : 'Add Favourite'}
+                </button>
+            </div>
+        `
+
+    spaceModal.style.display = 'flex'
+
+    document
+      .getElementById('modalCheckinBtn')
+      .addEventListener('click', async () => {
+        if (!isCheckedIn) {
+          await handleCheckIn(spaceId)
+          spaceModal.style.display = 'none'
+        }
+      })
+
+    const modalFavoriteBtn = document.getElementById('modalFavoriteBtn')
+    modalFavoriteBtn.addEventListener('click', async () => {
+      await handleToggleFavorite(spaceId, modalFavoriteBtn)
+      const nowFavorite = favoriteSpaceIds.has(spaceId)
+      modalFavoriteBtn.textContent = nowFavorite
+        ? 'Remove Favourite'
+        : 'Add Favourite'
+      modalFavoriteBtn.classList.toggle('is-favorite', nowFavorite)
+    })
+  } catch (error) {
+    alert('Error loading space details: ' + error.message)
+  }
+}
+
+modalClose?.addEventListener('click', () => {
+  spaceModal.style.display = 'none'
+})
+spaceModal?.addEventListener('click', (e) => {
+  if (e.target === spaceModal) spaceModal.style.display = 'none'
+})
+
+async function handleCheckIn(spaceId) {
+  try {
+    await apiCall('/api/checkins/checkin', {
+      method: 'POST',
+      body: JSON.stringify({ spaceId }),
+    })
+    alert('Checked in successfully!')
+    await loadActiveCheckin()
+    loadSpaces(currentPage)
+  } catch (error) {
+    alert('Error checking in: ' + error.message)
+  }
+}
+
+async function handleToggleFavorite(spaceId, buttonElement) {
+  try {
+    const isFavorite = favoriteSpaceIds.has(spaceId)
+    if (isFavorite) {
+      await apiCall(`/api/favorites/remove/${spaceId}`, { method: 'DELETE' })
+      favoriteSpaceIds.delete(spaceId)
+      buttonElement.classList.remove('is-favorite')
+      buttonElement.textContent = 'Add Favourite'
+    } else {
+      await apiCall('/api/favorites/add', {
+        method: 'POST',
+        body: JSON.stringify({ spaceId }),
+      })
+      favoriteSpaceIds.add(spaceId)
+      buttonElement.classList.add('is-favorite')
+      buttonElement.textContent = 'Remove Favourite'
+    }
+  } catch (error) {
+    alert('Error: ' + error.message)
+  }
+}
+
+function populateBuildingFilter() {
+  const buildings = [...new Set(allSpaces.map((s) => s.building))]
+  buildingFilter.innerHTML = '<option value="">All Buildings</option>'
+  buildings.forEach((building) => {
+    const option = document.createElement('option')
+    option.value = building
+    option.textContent = building
+    buildingFilter.appendChild(option)
+  })
+}
 
 init()
