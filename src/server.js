@@ -23,7 +23,7 @@ const app = express()
  */
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5000',
+    origin: [process.env.FRONTEND_URL || 'http://localhost:5000'],
     credentials: true,
   }),
 )
@@ -32,6 +32,11 @@ app.use(
  */
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+
+/**
+ * -------------------------- COOKIE PARSER --------------------------
+ */
+app.use(cookieParser())
 app.use(express.static(path.join(__dirname, '../frontend'))) // CHANGED THIS LINE
 
 /**
@@ -43,11 +48,6 @@ app.use(passport.initialize())
  * -------------------------- LOGGER --------------------------
  */
 app.use(morgan('dev'))
-
-/**
- * -------------------------- COOKIE PARSER --------------------------
- */
-app.use(cookieParser())
 
 /**
  * -------------------------- ROUTES --------------------------
