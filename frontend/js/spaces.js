@@ -21,6 +21,7 @@ const modalClose = document.querySelector('.modal-close')
 let allSpaces = []
 let favoriteSpaceIds = new Set()
 let currentPage = 1
+// eslint-disable-next-line no-unused-vars
 let totalPages = 1
 let searchTimeout = null
 const LIMIT = 9

@@ -1,13 +1,9 @@
-import {
-  requireAdmin,
-  apiCall,
-  getOccupancyLevel,
-  formatAmenity,
-} from './main.js'
+import { requireAdmin, apiCall, getOccupancyLevel } from './main.js'
 
 let editingSpaceId = null
 let deletingSpaceId = null
 let currentPage = 1
+// eslint-disable-next-line no-unused-vars
 let totalPages = 1
 let searchTimeout = null
 const LIMIT = 10

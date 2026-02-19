@@ -3,7 +3,6 @@ import {
   showAdminNavIfAdmin,
   apiCall,
   getOccupancyLevel,
-  formatOccupancy,
   formatAmenity,
 } from './main.js'
 

@@ -57,7 +57,7 @@ app.use('/', router)
 /**
  *  -------------------------- Global error handler--------------------------
  */
-app.use((err, req, res, _next) => {
+app.use((err, req, res) => {
   console.error('Error:', err)
   res.status(err.status || 500).json({
     error: {
