@@ -7,11 +7,11 @@ import checkinsRouter from './checkins.js'
 
 const router = express.Router()
 
-router.use('/', authRouter)
-router.use('/user', userRouter)
-router.use('/spaces', spacesRouter)
-router.use('/favorites', favoritesRouter)
-router.use('/checkins', checkinsRouter)
+router.use('/api/auth', authRouter)
+router.use('/api/user', userRouter)
+router.use('/api/spaces', spacesRouter)
+router.use('/api/favorites', favoritesRouter)
+router.use('/api/checkins', checkinsRouter)
 
 router.get('/test', (req, res) => {
   try {

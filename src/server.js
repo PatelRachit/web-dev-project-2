@@ -3,6 +3,8 @@ import cors from 'cors'
 import morgan from 'morgan'
 import express from 'express'
 import passport from 'passport'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import initMongo from './config/mongo.js'
 import './config/passport.js'
 import router from './routes/index.js'
@@ -11,6 +13,9 @@ import { configDotenv } from 'dotenv'
 
 configDotenv()
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const app = express()
 
 /**
@@ -18,7 +23,7 @@ const app = express()
  */
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [process.env.FRONTEND_URL || 'http://localhost:5000'],
     credentials: true,
   }),
 )
@@ -27,6 +32,12 @@ app.use(
  */
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+
+/**
+ * -------------------------- COOKIE PARSER --------------------------
+ */
+app.use(cookieParser())
+app.use(express.static(path.join(__dirname, '../frontend'))) // CHANGED THIS LINE
 
 /**
  * -------------------------- PASSPORT --------------------------
@@ -39,11 +50,6 @@ app.use(passport.initialize())
 app.use(morgan('dev'))
 
 /**
- * -------------------------- COOKIE PARSER --------------------------
- */
-app.use(cookieParser())
-
-/**
  * -------------------------- ROUTES --------------------------
  */
 app.use('/', router)
@@ -51,7 +57,7 @@ app.use('/', router)
 /**
  *  -------------------------- Global error handler--------------------------
  */
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error:', err)
   res.status(err.status || 500).json({
     error: {

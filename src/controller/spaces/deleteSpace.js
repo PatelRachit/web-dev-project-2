@@ -1,4 +1,4 @@
-import * as Spaces from '../../models/spaces.js';
+import * as Spaces from '../../models/spaces.js'
 
 /**
  * DELETE /api/spaces/:id
@@ -6,26 +6,26 @@ import * as Spaces from '../../models/spaces.js';
  */
 export async function deleteSpace(req, res) {
   try {
-    const { id } = req.params;
-    
-    const deleted = await Spaces.deleteSpace(id);
-    
+    const { id } = req.params
+
+    const deleted = await Spaces.deleteSpace(id)
+
     if (!deleted) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: 'Space not found' 
-      });
+        error: 'Space not found',
+      })
     }
-    
-    res.json({ 
+
+    res.json({
       success: true,
-      message: 'Space deleted successfully' 
-    });
+      message: 'Space deleted successfully',
+    })
   } catch (error) {
-    console.error('Error deleting space:', error);
-    res.status(500).json({ 
+    console.error('Error deleting space:', error)
+    res.status(500).json({
       success: false,
-      error: 'Failed to delete space' 
-    });
+      error: 'Failed to delete space',
+    })
   }
 }
