@@ -58,7 +58,7 @@ The system displays color-coded occupancy indicators (e.g., 12/30 seats occupied
 
 ### Login
 
-![Favorites](./screenshots/login.png)
+![login](./screenshots/login.png)
 
 ### Dashboard
 
@@ -74,7 +74,7 @@ The system displays color-coded occupancy indicators (e.g., 12/30 seats occupied
 
 ### Admin
 
-![Favorites](./screenshots/admin.png)
+![Admin](./screenshots/admin.png)
 
 ---
 
