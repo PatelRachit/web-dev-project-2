@@ -96,8 +96,14 @@ export function getOccupancyLevel(current, capacity) {
     return 'high';
 }
 
-// Format occupancy text
 export function formatOccupancy(current, capacity) {
     const percentage = Math.round((current / capacity) * 100);
     return `${current}/${capacity} (${percentage}%)`;
+}
+
+export function formatAmenity(amenity) {
+    return amenity
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }

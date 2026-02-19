@@ -41,9 +41,6 @@
 
         <!-- Search and Filters -->
         <section class="search-section">
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search study spaces..." class="search-input">
-            </div>
 
             <div class="filters">
                 <div class="filter-group">
@@ -65,21 +62,17 @@
                 </div>
 
                 <div class="filter-group">
-                    <label>Amenities:</label>
-                    <div class="checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" class="amenity-filter" value="outlets"> Outlets
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" class="amenity-filter" value="wifi"> WiFi
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" class="amenity-filter" value="whiteboard"> Whiteboard
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" class="amenity-filter" value="quiet"> Quiet
-                        </label>
-                    </div>
+                    <label for="amenitiesFilter">Amenities:</label>
+                    <select id="amenitiesFilter" class="filter-select">
+                        <option value="">All Amenities</option>
+                        <option value="outlets">Outlets</option>
+                        <option value="wifi">WiFi</option>
+                        <option value="whiteboard">Whiteboard</option>
+                        <option value="quiet">Quiet</option>
+                        <option value="food_allowed">Food Allowed</option>
+                        <option value="group_seating">Group Seating</option>
+                        <option value="individual_desks">Individual Desks</option>
+                    </select>
                 </div>
 
                 <button id="clearFilters" class="btn btn-secondary">Clear Filters</button>

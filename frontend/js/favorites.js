@@ -4,7 +4,8 @@ import {
     requireAuth, 
     apiCall, 
     getOccupancyLevel, 
-    formatOccupancy 
+    formatOccupancy,
+    formatAmenity
 } from './main.js';
 
 // Check authentication
@@ -25,7 +26,7 @@ async function loadFavorites() {
         noFavorites.style.display = 'none';
 
         const data = await apiCall('/api/favorites');
-        const favorites = data.data || [];
+        const favorites = data.favourites || [];
 
         loadingSpinner.style.display = 'none';
 
@@ -76,7 +77,7 @@ function createFavoriteCard(space) {
                 </span>
             </div>
             <div class="amenities">
-                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join(' ') : ''}
+                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join(' ') : ''}
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary checkin-btn" data-id="${space._id}">Check In</button>

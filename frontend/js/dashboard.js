@@ -21,7 +21,7 @@ const checkoutBtn = document.getElementById('checkoutBtn');
 const searchInput = document.getElementById('searchInput');
 const categoryFilter = document.getElementById('categoryFilter');
 const buildingFilter = document.getElementById('buildingFilter');
-const amenityFilters = document.querySelectorAll('.amenity-filter');
+const amenitiesFilter = document.getElementById('amenitiesFilter');
 const clearFiltersBtn = document.getElementById('clearFilters');
 
 let allSpaces = [];
@@ -85,19 +85,16 @@ async function loadSpaces() {
             params.append('building', buildingFilter.value);
         }
 
-        const selectedAmenities = Array.from(amenityFilters)
-            .filter(cb => cb.checked)
-            .map(cb => cb.value);
-        
-        if (selectedAmenities.length > 0) {
-            params.append('amenities', selectedAmenities.join(','));
+        // Handle amenities dropdown
+        if (amenitiesFilter && amenitiesFilter.value) {
+            params.append('amenities', amenitiesFilter.value);
         }
 
         const queryString = params.toString();
         const endpoint = queryString ? `/api/spaces?${queryString}` : '/api/spaces';
         
         const data = await apiCall(endpoint);
-        allSpaces = data.spaces || [];
+        allSpaces = data.data || [];
 
         loadingSpinner.style.display = 'none';
 
@@ -146,7 +143,7 @@ function createSpaceCard(space) {
                 </span>
             </div>
             <div class="amenities">
-                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join('') : ''}
+                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join(' ') : ''}
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary checkin-btn" data-id="${space._id}">Check In</button>
@@ -220,16 +217,14 @@ searchInput?.addEventListener('input', (e) => {
 // Filter handlers
 categoryFilter?.addEventListener('change', loadSpaces);
 buildingFilter?.addEventListener('change', loadSpaces);
-amenityFilters.forEach(filter => {
-    filter.addEventListener('change', loadSpaces);
-});
+amenitiesFilter?.addEventListener('change', loadSpaces);
 
 // Clear filters
 clearFiltersBtn?.addEventListener('click', () => {
-    searchInput.value = '';
+    if (searchInput) searchInput.value = '';
     categoryFilter.value = '';
     buildingFilter.value = '';
-    amenityFilters.forEach(filter => filter.checked = false);
+    if (amenitiesFilter) amenitiesFilter.value = '';
     loadSpaces();
 });
 
