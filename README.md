@@ -20,6 +20,32 @@
 
 ---
 
+## Deployment
+
+**Live Application:** https://spot-check-teal.vercel.app/login.html
+
+The application is deployed on Vercel with MongoDB Atlas for the database.
+
+---
+
+## Video Demo
+
+[Link to narrated video demonstration – to be added]
+
+---
+
+## Slides
+
+[google slides]
+
+---
+
+## Design Document
+
+See [DESIGN_DOCUMENT.md](./DESIGN-DOCUMENT.md) for full project design including mockups and schema diagrams.
+
+---
+
 ## Project Objective
 
 Students waste 15–30 minutes daily walking across campus searching for available study spots, especially during midterms and finals when libraries are packed. **SpotCheck** solves this problem by crowdsourcing real-time occupancy data through user check-ins, showing live availability before students leave their current location.
@@ -30,17 +56,25 @@ The system displays color-coded occupancy indicators (e.g., 12/30 seats occupied
 
 ## Screenshots
 
+### Login
+
+![Favorites](./screenshots/login.png)
+
 ### Dashboard
 
 ![Dashboard](./screenshots/dashboard.png)
 
 ### Space Details
 
-![Space Details](./screenshots/space-details.png)
+![Space Details](./screenshots/spaces.png)
 
 ### Favorites
 
-![Favorites](./screenshots/favorites.png)
+![Favorites](./screenshots/favourites.png)
+
+### Admin
+
+![Favorites](./screenshots/admin.png)
 
 ---
 
@@ -100,7 +134,7 @@ The system displays color-coded occupancy indicators (e.g., 12/30 seats occupied
 
 ### Code Quality
 
-- **ESLint** – Linting (`eslint.config.mjs`)
+- **ESLint** – Linting (`eslint.config.js`)
 - **Prettier** – Formatting (`.prettierrc`)
 
 ---
@@ -131,28 +165,24 @@ npm install
 3. **Create a `.env` file in the root directory**
 
 ```env
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/spotcheck
+MONGO_URI= mongodb+srv://rachit:rachit@spotcheck.8jcn5xk.mongodb.net/?appName=spotcheck
 DB_NAME=spotcheck
 PORT=5000
-JWT_SECRET=your_jwt_secret_here
-CLIENT_URL=http://localhost:5000
+JWT_SECRET=ApiSecretToken
+FRONTEND_URL=http://localhost:5000
+ALGORITHM_ACCESS_TOKEN = aes-256-cbc
+ALGORITHM_API_KEY = aes-64w-cbc
 ```
 
 > **Important:** Never commit `.env` to version control. It is listed in `.gitignore`.
 
-4. **(Optional) Seed the database**
-
-```bash
-npm run seed
-```
-
-5. **Start the development server**
+4. **Start the development server**
 
 ```bash
 npm run dev
 ```
 
-6. **Open the application**
+5. **Open the application**
 
 ```
 http://localhost:5000
@@ -165,9 +195,8 @@ http://localhost:5000
 ```bash
 npm run dev        # Start development server with nodemon
 npm run lint       # Run ESLint
-npm run lint:fix   # Auto-fix ESLint issues
+npm run fix        # fix ESLint and Prettier issues
 npm run format     # Format code with Prettier
-npm run seed       # Seed the database with sample spaces
 ```
 
 ---
@@ -176,58 +205,35 @@ npm run seed       # Seed the database with sample spaces
 
 ```
 web-dev-project-2/
-├── src/
-│   ├── config/
-│   │   ├── mongo.js              # MongoDB native driver connection
-│   │   └── passport.js           # JWT Passport strategy
-│   ├── controllers/              # Business logic (one file per resource)
-│   │   ├── auth/
-│   │   ├── spaces/
-│   │   ├── checkins/
-│   │   ├── favorites/
-│   │   └── user/
-│   ├── models/                   # Database operations (no Mongoose)
-│   │   ├── spaces.js
-│   │   ├── checkins.js
-│   │   ├── favorites.js
-│   │   └── user.js
-│   ├── routes/                   # Express route definitions
-│   │   ├── auth.js
-│   │   ├── spaces.js
-│   │   ├── checkins.js
-│   │   ├── favorites.js
-│   │   └── index.js
-│   └── server.js                 # Express app entry point
-├── public/                       # Frontend (client-side rendered)
+├── frontend/
 │   ├── css/                      # Modular CSS – one file per page/component
-│   │   ├── base.css
-│   │   ├── dashboard.css
-│   │   ├── space-detail.css
-│   │   ├── favorites.css
-│   │   ├── auth.css
-│   │   └── profile.css
-│   ├── js/                       # Vanilla JS ES6 modules
-│   │   ├── api.js
-│   │   ├── dashboard.js
-│   │   ├── space-detail.js
-│   │   ├── favorites.js
-│   │   ├── auth.js
-│   │   └── profile.js
 │   ├── images/
-│   ├── index.html
-│   ├── space-detail.html
+│   ├── js/                       # Vanilla JS ES6 modules
+│   ├── admin.html
 │   ├── favorites.html
+│   ├── index.html
 │   ├── login.html
-│   ├── register.html
-│   └── profile.html
-├── screenshots/
+│   └── spaces.html
+├── src/
+│   ├── config/                   # MongoDB connection & Passport JWT strategy
+│   ├── constant/                 # Shared constants
+│   ├── controller/               # Business logic (one file per resource)
+│   ├── middleware/               # Auth & validation middleware
+│   ├── models/                   # Database operations (native MongoDB driver)
+│   ├── routes/                   # Express route definitions
+│   ├── utils/                    # Helper utilities
+│   └── server.js                 # Express app entry point
+├── node_modules/
 ├── .env                          # Environment variables (gitignored)
 ├── .gitignore
+├── .prettierignore
 ├── .prettierrc
+├── DESIGN-DOCUMENT.md
 ├── eslint.config.mjs
-├── package.json
-├── DESIGN_DOCUMENT.md
 ├── LICENSE                       # MIT License
+├── nodemon.json
+├── package-lock.json
+├── package.json
 └── README.md
 ```
 
@@ -237,7 +243,7 @@ web-dev-project-2/
 
 The application uses **4 MongoDB collections** supporting full CRUD operations:
 
-**users** – Authentication, profile, check-in status, and reference to favorites.
+**users** – Authentication, profile, check-in status, reference to favorites, and an `isAdmin` flag to control access to the admin panel.
 
 **spaces** – Study space records including name, building, capacity, current occupancy, amenities, category, and hours.
 
@@ -262,7 +268,7 @@ The application uses **4 MongoDB collections** supporting full CRUD operations:
 - Users collection – full CRUD
 - Favorites collection – full CRUD
 - JWT authentication system (register, login, logout)
-- User profile management
+- Admin panel for managing study spaces
 
 ---
 
@@ -277,25 +283,16 @@ The application uses **4 MongoDB collections** supporting full CRUD operations:
 7. **Favorite** spaces you use often for quick access from the Favorites page.
 8. **Log out** when you are done to keep your session secure.
 
----
+### Admin Access
 
-## Deployment
+To access the admin panel, navigate to `admin.html` and log in with the following credentials:
 
-**Live Application:** [Deployment URL – to be added]
+| Field    | Value           |
+| -------- | --------------- |
+| Email    | admin@gmail.com |
+| Password | Admin@123       |
 
-The application is deployed on [Platform – to be added] with MongoDB Atlas for the database.
-
----
-
-## Video Demo
-
-[Link to narrated video demonstration – to be added]
-
----
-
-## Design Document
-
-See [DESIGN_DOCUMENT.md](./DESIGN_DOCUMENT.md) for full project design including mockups and schema diagrams.
+Once logged in with the admin credentials, an **Admin** link will appear in the navigation bar giving you access to the admin panel. From there you can add new study spaces, edit existing space details, and delete spaces to keep the database current.
 
 ---
 
