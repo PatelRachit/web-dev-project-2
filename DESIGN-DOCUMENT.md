@@ -217,6 +217,80 @@ Students waste 15-30 minutes daily walking across campus searching for available
 6. Walks over and checks in
 7. Works until 2 AM, checks out when leaving
 
+### Persona 5: Jordan
+
+**Part-time student balancing work and classes, needs to find spaces quickly during short breaks**
+
+**Demographics:**
+
+- Age: 23
+- Year: Senior
+- Major: Business Administration
+- Study Habits: Short 30-60 minute sessions between work shifts and classes
+
+**Goals:**
+
+- Find available spaces instantly without wasting break time searching
+- Locate spaces close to wherever they currently are on campus
+- Check out quickly when their break ends
+
+**Pain Points:**
+
+- Very limited time between work and class commitments
+- Can't afford to walk across campus only to find spaces full
+- Needs spaces that are available right now, not in 30 minutes
+
+**How SpotCheck Helps:**
+
+- See real-time availability before leaving current location
+- Filter by building to find nearby spaces fast
+- Quick check-in and check-out process
+
+**Typical User Journey:**
+
+1. Gets a 45-minute break between work shift and class
+2. Opens SpotCheck immediately and filters by nearest building
+3. Finds Student Union lounge (3/10 occupied)
+4. Checks in, studies for 40 minutes
+5. Checks out and heads to class
+
+---
+
+### Persona 6: Dr. Kim
+
+**Faculty advisor who recommends SpotCheck to students and wants accurate space data**
+
+**Demographics:**
+
+- Age: 45
+- Role: Academic Advisor / Faculty
+- Department: College of Engineering
+
+**Goals:**
+
+- Recommend reliable study spaces to advisees during busy exam periods
+- Trust that occupancy data shown is accurate and up to date
+- Ensure the tool benefits students across all departments
+
+**Pain Points:**
+
+- Students frequently complain about not finding study spaces during finals
+- Existing campus maps are outdated and don't show real-time availability
+- No way to verify which spaces are actually open and available
+
+**How SpotCheck Helps:**
+
+- Recommend SpotCheck to students as a reliable resource
+- Trust crowdsourced real-time data from active check-ins
+- Point students to specific buildings and space types for their needs
+
+**Typical User Journey:**
+
+1. Student mentions struggling to find study space during advising session
+2. Dr. Kim recommends SpotCheck and walks them through filtering by building
+3. Together they find an available space near the student's next class
+4. Student checks in successfully, Dr. Kim bookmarks the tool for future advising sessions
+
 ---
 
 ## 3. User Stories
@@ -272,9 +346,24 @@ Students waste 15-30 minutes daily walking across campus searching for available
 
 ---
 
+**US-4: Quick Space Discovery During Short Breaks**
+
+> _As a part-time student with limited break time, I want to instantly find an available space near my current building using filters, so I can start studying within minutes without wasting my short breaks searching._
+
+**Acceptance Criteria:**
+
+- Filter by building returns only spaces in that building
+- Occupancy data reflects current real-time status
+- Search and filter results load within 2 seconds
+- Check-in process completes in a single click
+- Check-out is equally fast and updates occupancy immediately
+- Color-coded status badges reflect actual current occupancy
+
+---
+
 ### Prajakta's Implementation (Users & Favorites)
 
-**US-4: Create Account and Login Securely**
+**US-5: Create Account and Login Securely**
 
 > _As a student, I want to create an account with my information and log in securely, so I can save favorites, check into spaces, and have my data protected._
 
@@ -293,7 +382,7 @@ Students waste 15-30 minutes daily walking across campus searching for available
 
 ---
 
-**US-5: Add and Remove Spaces from Favorites**
+**US-6: Add and Remove Spaces from Favorites**
 
 > _As a student, I want to add spaces to my favorites list and remove them when my preferences change, so I can quickly access the spots I actually use without searching every time._
 
@@ -309,7 +398,7 @@ Students waste 15-30 minutes daily walking across campus searching for available
 
 ---
 
-**US-6: View All Favorites with Real-Time Availability**
+**US-7: View All Favorites with Real-Time Availability**
 
 > _As a student, I want to view all my favorite spaces in one dedicated page with their current availability, so I can quickly choose where to study today and check in directly from my favorites._
 
@@ -326,45 +415,116 @@ Students waste 15-30 minutes daily walking across campus searching for available
 
 ---
 
+**US-8: Quick Account Setup and Favorites for Returning Users**
+
+> _As a part-time student with limited time, I want to register quickly, save my frequently used spaces to favorites, and check in directly from the favorites page, so I don't have to search every time I have a short break._
+
+**Acceptance Criteria:**
+
+- Registration form is simple and completes in under a minute
+- Favorites are saved to the user's account and persist across sessions
+- User can check in directly from the Favorites page in one click
+- Favorites page loads with current real-time occupancy for each saved space
+- User remains logged in across page refreshes via JWT token
+
+---
+
 ## 4. Design Mockups
 
 ### 4.1 Login Page
 
-![View Login Page Mockup](./screenshots/login_mockup.png)
+![Login Page Mockup](./screenshots/login_mockup.png)
+
+**Layout Description:**
+
+- **Background**: Full-screen blurred campus photo
+- **Card**: Centered white card with app name and tagline at the top
+- **Form Fields**: Email and password input fields with placeholder text
+- **Primary Button**: Full-width login button
+- **Footer Link**: Link to registration page for new users
+
+---
 
 ### 4.2 Registration Page
 
-![View Login Page Mockup](./screenshots/register_mockup.png)
+![Register Page Mockup](./screenshots/register_mockup.png)
+
+**Layout Description:**
+
+- **Background**: Full-screen blurred campus photo (same as login)
+- **Card**: Centered white card with app name and tagline at the top
+- **Form Fields**: Full name, email, password, major, and graduation year inputs
+- **Primary Button**: Full-width register button
+- **Footer Link**: Link back to login page for existing users
 
 ---
 
 ### 4.3 Dashboard / Home Page
 
-![View Dashboard Mockup](./screenshots/dashboard_mockup.png)
+![Dashboard Mockup](./screenshots/dashboard_mockup.png)
+
+**Layout Description:**
+
+- **Navigation Bar**: Fixed header with logo on left, nav links (Dashboard, Spaces, Favorites, Admin, Logout) on right with active state indicator
+- **Search Bar**: Full-width search input at the top of the content area
+- **Filter Panel**: Three dropdowns (Category, Building, Amenities) in a row with a Clear Filters button
+- **Space Cards**: 3-column grid of cards each showing title, category badge, location, occupancy count with color-coded progress bar, seat count, hours, description, amenity tags, and two action buttons (Check In, Add Favourite)
 
 ---
 
 ### 4.4 Space Page
 
-![View Dashboard Mockup](./screenshots/spaces_mockup.png)
+![Spaces Page Mockup](./screenshots/spaces_mockup.png)
+
+**Layout Description:**
+
+- **Navigation Bar**: Fixed header with Spaces active in nav links
+- **Page Heading**: Centered title and subheading above the filter panel
+- **Search Bar**: Full-width search input
+- **Filter Panel**: Three dropdowns (Category, Building, Amenities) with a Clear Filters button
+- **Space Cards**: 3-column grid identical to the dashboard with title, badge, location, occupancy, amenity tags, and View Details / Add Favourite buttons
+
+---
 
 ### 4.5 Space Details Page
 
-![View Dashboard Mockup](./screenshots/space_details.png)
+![Space Details Mockup](./screenshots/space_details.png)
+
+**Layout Description:**
+
+- **Background**: Spaces page visible behind a dimmed overlay
+- **Modal**: Centered white modal with a close (✕) button in the top-right corner
+- **Header**: Space name as title and location/wing as subtitle
+- **Occupancy Box**: Highlighted section showing current count (X/Y %), percentage, and color-coded status badge
+- **About Section**: Label-value rows for Category, Capacity, Description, and Hours
+- **Amenities Section**: Pill-shaped amenity tags in a row
+- **Action Buttons**: Two full-width buttons at the bottom (Check In Here, Add Favourite)
 
 ---
 
 ### 4.6 Favorites Page
 
-![View Dashboard Mockup](./screenshots/favourites_mockup.png)
+![Favorites Page Mockup](./screenshots/favourites_mockup.png)
+
+**Layout Description:**
+
+- **Navigation Bar**: Fixed header with Favorites active in nav links
+- **Page Heading**: Centered title and subheading
+- **Space Cards**: 3-column grid of favorited spaces, each with a ✕ remove button in the top-right corner
+- **Card Content**: Space title, location, category, occupancy with status badge, seat count, description, amenity tags, and Check In / View Details buttons
 
 ---
 
 ### 4.7 Admin Page
 
-![View Dashboard Mockup](./screenshots/admin_mockup.png)
+![Admin Page Mockup](./screenshots/admin_mockup.png)
 
----
+**Layout Description:**
+
+- **Navigation Bar**: Fixed header with ADMIN badge next to the logo and Admin active in nav links
+- **Page Header**: Left-aligned page title and subheading with a "+ Add New Space" button on the right
+- **Stats Row**: Three stat cards in a row showing Total Spaces, Total Capacity, and Available Now
+- **Table Panel**: Searchable table with columns for Name, Building, Category, Capacity, Occupancy (progress bar + count), Status badge, and Edit / Delete action buttons per row
 
 ## 5. Color Scheme & Design System
 
@@ -433,7 +593,6 @@ Students waste 15-30 minutes daily walking across campus searching for available
 1. **users** - User accounts and favorites
 2. **spaces** - Study space information
 3. **checkins** - Check-in/out records
-4. **sessions** (optional) - Active user sessions
 
 ---
 
@@ -490,46 +649,7 @@ Students waste 15-30 minutes daily walking across campus searching for available
 
 ---
 
-## 9. Project Timeline
-
-### Week 1-2: Setup & Authentication
-
-- Project setup and environment configuration
-- Database schema design
-- User authentication system (Prajakta)
-- Basic space CRUD operations (Rachit)
-
-### Week 3-4: Core Features
-
-- Space browsing and filtering (Rachit)
-- Check-in/out system (Rachit)
-- Favorites system (Prajakta)
-- Real-time occupancy updates
-
-### Week 5-6: Frontend Development
-
-- HTML pages for all views
-- CSS styling and responsive design
-- JavaScript client-side rendering
-- API integration
-
-### Week 7: Testing & Polish
-
-- End-to-end testing
-- Bug fixes
-- Performance optimization
-- Documentation
-
-### Week 8: Deployment
-
-- Environment setup
-- Database migration
-- Server deployment
-- Final testing and video demo
-
----
-
-## 10. Team Responsibilities
+## 9. Team Responsibilities
 
 ### Rachit Patel
 
@@ -572,9 +692,3 @@ Students waste 15-30 minutes daily walking across campus searching for available
 - Video demo creation
 
 ---
-
-_End of Design Document_
-
-```
-
-```

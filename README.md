@@ -241,15 +241,13 @@ web-dev-project-2/
 
 ## Database Collections
 
-The application uses **4 MongoDB collections** supporting full CRUD operations:
+The application uses **3 MongoDB collections** supporting full CRUD operations:
 
 **users** – Authentication, profile, check-in status, reference to favorites, and an `isAdmin` flag to control access to the admin panel.
 
 **spaces** – Study space records including name, building, capacity, current occupancy, amenities, category, and hours.
 
 **checkins** – Individual check-in/check-out events linking a user to a space with timestamps and an `isActive` flag for real-time occupancy calculation.
-
-**favourites** – Saved space references per user, enabling a personalized quick-access list.
 
 ---
 
