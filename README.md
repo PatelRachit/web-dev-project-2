@@ -58,7 +58,7 @@ The system displays color-coded occupancy indicators (e.g., 12/30 seats occupied
 
 ### Login
 
-![Favorites](./screenshots/login.png)
+![Favorites](https://github.com/PatelRachit/web-dev-project-2/blob/master/screenshots/admin.png)
 
 ### Dashboard
 
