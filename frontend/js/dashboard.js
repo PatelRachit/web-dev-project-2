@@ -20,6 +20,7 @@ const clearFiltersBtn = document.getElementById('clearFilters')
 let allSpaces = []
 let activeCheckin = null
 let favoriteSpaceIds = new Set()
+let currentCheckedInSpaceId = null
 let currentPage = 1
 // eslint-disable-next-line no-unused-vars
 let totalPages = 1
@@ -50,14 +51,17 @@ async function loadActiveCheckin() {
     const banner = document.getElementById('statusBanner')
 
     if (activeCheckin?.space) {
+      currentCheckedInSpaceId = activeCheckin.space._id
       const duration = calculateDuration(activeCheckin.checkInTime)
       statusText.textContent = `Checked in at ${activeCheckin.space.name} (${duration})`
       checkoutBtn.style.display = 'inline-flex'
       banner.style.display = 'flex'
     } else {
+      currentCheckedInSpaceId = null
       banner.style.display = 'none'
     }
   } catch {
+    currentCheckedInSpaceId = null
     document.getElementById('statusBanner').style.display = 'none'
   }
 }
@@ -141,6 +145,7 @@ function createSpaceCard(space) {
         ? 'Filling Up'
         : 'Nearly Full'
   const isFavorite = favoriteSpaceIds.has(space._id)
+  const isCheckedIn = currentCheckedInSpaceId === space._id
   const hoursText = space.is24Hours ? 'Open 24/7' : space.hours?.weekday || null
   const locationParts = []
   if (space.floor) locationParts.push(`Floor ${space.floor}`)
@@ -179,7 +184,9 @@ function createSpaceCard(space) {
                 ${space.amenities?.length ? space.amenities.map((a) => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join('') : ''}
             </div>
             <div class="card-actions">
-                <button class="btn btn-primary checkin-btn" data-id="${space._id}">Check In</button>
+                <button class="btn ${isCheckedIn ? 'btn-success' : 'btn-primary'} checkin-btn" data-id="${space._id}" ${isCheckedIn ? 'disabled' : ''}>
+                    ${isCheckedIn ? '✓ Checked In' : 'Check In'}
+                </button>
                 <button class="btn btn-secondary favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-id="${space._id}">
                     ${isFavorite ? 'Remove Favourite' : 'Add Favourite'}
                 </button>
