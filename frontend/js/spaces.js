@@ -4,7 +4,8 @@ import {
     requireAuth, 
     apiCall, 
     getOccupancyLevel, 
-    formatOccupancy 
+    formatOccupancy,
+    formatAmenity
 } from './main.js';
 
 // Check authentication
@@ -18,7 +19,7 @@ const loadingSpinner = document.getElementById('loadingSpinner');
 const noResults = document.getElementById('noResults');
 const categoryFilter = document.getElementById('categoryFilter');
 const buildingFilter = document.getElementById('buildingFilter');
-const amenityFilters = document.querySelectorAll('.amenity-filter');
+const amenitiesFilter = document.getElementById('amenitiesFilter');
 const clearFiltersBtn = document.getElementById('clearFilters');
 const spaceModal = document.getElementById('spaceModal');
 const spaceDetails = document.getElementById('spaceDetails');
@@ -59,12 +60,9 @@ async function loadSpaces() {
             params.append('building', buildingFilter.value);
         }
 
-        const selectedAmenities = Array.from(amenityFilters)
-            .filter(cb => cb.checked)
-            .map(cb => cb.value);
-        
-        if (selectedAmenities.length > 0) {
-            params.append('amenities', selectedAmenities.join(','));
+        // Handle amenities dropdown
+        if (amenitiesFilter && amenitiesFilter.value) {
+            params.append('amenities', amenitiesFilter.value);
         }
 
         const queryString = params.toString();
@@ -121,7 +119,7 @@ function createSpaceCard(space) {
                 </span>
             </div>
             <div class="amenities">
-                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join(' ') : ''}
+                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join(' ') : ''}
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary view-details-btn" data-id="${space._id}">View Details</button>
@@ -176,7 +174,7 @@ async function showSpaceDetails(spaceId) {
             <div class="space-detail-amenities">
                 <h3>Amenities</h3>
                 <div class="amenities">
-                    ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join(' ') : 'None listed'}
+                    ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join(' ') : 'None listed'}
                 </div>
             </div>
 
@@ -280,17 +278,14 @@ function populateBuildingFilter() {
 // Filter handlers
 categoryFilter?.addEventListener('change', loadSpaces);
 buildingFilter?.addEventListener('change', loadSpaces);
-amenityFilters.forEach(filter => {
-    filter.addEventListener('change', loadSpaces);
-});
+amenitiesFilter?.addEventListener('change', loadSpaces);
 
 // Clear filters
 clearFiltersBtn?.addEventListener('click', () => {
     categoryFilter.value = '';
     buildingFilter.value = '';
-    amenityFilters.forEach(filter => filter.checked = false);
+    if (amenitiesFilter) amenitiesFilter.value = '';
     loadSpaces();
 });
 
-// Initial load
 loadSpaces();

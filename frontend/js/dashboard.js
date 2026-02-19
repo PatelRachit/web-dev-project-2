@@ -4,7 +4,8 @@ import {
     requireAuth, 
     apiCall, 
     getOccupancyLevel, 
-    formatOccupancy 
+    formatOccupancy,
+    formatAmenity
 } from './main.js';
 
 // Check authentication
@@ -26,6 +27,19 @@ const clearFiltersBtn = document.getElementById('clearFilters');
 
 let allSpaces = [];
 let activeCheckin = null;
+let favoriteSpaceIds = new Set();
+
+// Load user's favorites
+async function loadFavorites() {
+    try {
+        const data = await apiCall('/api/favorites');
+        const favorites = data.favourites || [];
+        favoriteSpaceIds = new Set(favorites.map(fav => fav._id));
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+        favoriteSpaceIds = new Set();
+    }
+}
 
 // Load active check-in status
 async function loadActiveCheckin() {
@@ -74,6 +88,9 @@ async function loadSpaces() {
         loadingSpinner.style.display = 'block';
         spacesGrid.innerHTML = '';
         noResults.style.display = 'none';
+
+        // Load favorites first
+        await loadFavorites();
 
         const params = new URLSearchParams();
         
@@ -129,6 +146,7 @@ function createSpaceCard(space) {
 
     const occupancyLevel = getOccupancyLevel(space.currentOccupancy || 0, space.capacity);
     const occupancyText = formatOccupancy(space.currentOccupancy || 0, space.capacity);
+    const isFavorite = favoriteSpaceIds.has(space._id);
 
     card.innerHTML = `
         <div class="space-card-header">
@@ -143,11 +161,11 @@ function createSpaceCard(space) {
                 </span>
             </div>
             <div class="amenities">
-                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join(' ') : ''}
+                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join(' ') : ''}
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary checkin-btn" data-id="${space._id}">Check In</button>
-                <button class="btn btn-secondary favorite-btn" data-id="${space._id}">♥</button>
+                <button class="btn btn-secondary favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-id="${space._id}">♥</button>
             </div>
         </div>
     `;
@@ -158,7 +176,7 @@ function createSpaceCard(space) {
 
     // Favorite button handler
     const favoriteBtn = card.querySelector('.favorite-btn');
-    favoriteBtn.addEventListener('click', () => handleToggleFavorite(space._id));
+    favoriteBtn.addEventListener('click', () => handleToggleFavorite(space._id, favoriteBtn));
 
     return card;
 }
@@ -179,13 +197,28 @@ async function handleCheckIn(spaceId) {
 }
 
 // Handle toggle favorite
-async function handleToggleFavorite(spaceId) {
+async function handleToggleFavorite(spaceId, buttonElement) {
     try {
-        await apiCall('/api/favorites/add', {
-            method: 'POST',
-            body: JSON.stringify({ spaceId })
-        });
-        alert('Added to favorites!');
+        const isFavorite = favoriteSpaceIds.has(spaceId);
+        
+        if (isFavorite) {
+            // Remove from favorites
+            await apiCall(`/api/favorites/remove/${spaceId}`, {
+                method: 'DELETE'
+            });
+            favoriteSpaceIds.delete(spaceId);
+            buttonElement.classList.remove('is-favorite');
+            alert('Removed from favorites!');
+        } else {
+            // Add to favorites
+            await apiCall('/api/favorites/add', {
+                method: 'POST',
+                body: JSON.stringify({ spaceId })
+            });
+            favoriteSpaceIds.add(spaceId);
+            buttonElement.classList.add('is-favorite');
+            alert('Added to favorites!');
+        }
     } catch (error) {
         console.error('Error adding favorite:', error);
         alert('Error: ' + error.message);
