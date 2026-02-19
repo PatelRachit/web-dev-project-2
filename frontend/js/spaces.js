@@ -1,160 +1,183 @@
-// Spaces Page JavaScript
+import {
+  requireAuth,
+  showAdminNavIfAdmin,
+  apiCall,
+  getOccupancyLevel,
+  formatOccupancy,
+  formatAmenity,
+} from './main.js'
 
-import { 
-    requireAuth, 
-    apiCall, 
-    getOccupancyLevel, 
-    formatOccupancy,
-    formatAmenity
-} from './main.js';
+const spacesGrid = document.getElementById('spacesGrid')
+const loadingSpinner = document.getElementById('loadingSpinner')
+const noResults = document.getElementById('noResults')
+const categoryFilter = document.getElementById('categoryFilter')
+const buildingFilter = document.getElementById('buildingFilter')
+const amenitiesFilter = document.getElementById('amenitiesFilter')
+const clearFiltersBtn = document.getElementById('clearFilters')
+const spaceModal = document.getElementById('spaceModal')
+const spaceDetails = document.getElementById('spaceDetails')
+const modalClose = document.querySelector('.modal-close')
 
-// Check authentication
-if (!requireAuth()) {
-    throw new Error('Not authenticated');
+let allSpaces = []
+let favoriteSpaceIds = new Set()
+let currentPage = 1
+let totalPages = 1
+let searchTimeout = null
+const LIMIT = 9
+
+async function init() {
+  await requireAuth()
+  showAdminNavIfAdmin()
+  loadSpaces()
 }
 
-// DOM Elements
-const spacesGrid = document.getElementById('spacesGrid');
-const loadingSpinner = document.getElementById('loadingSpinner');
-const noResults = document.getElementById('noResults');
-const categoryFilter = document.getElementById('categoryFilter');
-const buildingFilter = document.getElementById('buildingFilter');
-const amenitiesFilter = document.getElementById('amenitiesFilter');
-const clearFiltersBtn = document.getElementById('clearFilters');
-const spaceModal = document.getElementById('spaceModal');
-const spaceDetails = document.getElementById('spaceDetails');
-const modalClose = document.querySelector('.modal-close');
-
-let allSpaces = [];
-let favoriteSpaceIds = new Set();
-
-// Load user's favorites
 async function loadFavorites() {
-    try {
-        const data = await apiCall('/api/favorites');
-        const favorites = data.favourites || [];
-        favoriteSpaceIds = new Set(favorites.map(fav => fav._id));
-    } catch (error) {
-        console.error('Error loading favorites:', error);
-        favoriteSpaceIds = new Set();
-    }
+  try {
+    const data = await apiCall('/api/favorites')
+    favoriteSpaceIds = new Set((data.favourites || []).map((fav) => fav._id))
+  } catch {
+    favoriteSpaceIds = new Set()
+  }
 }
 
-// Load spaces
-async function loadSpaces() {
-    try {
-        loadingSpinner.style.display = 'block';
-        spacesGrid.innerHTML = '';
-        noResults.style.display = 'none';
+async function loadSpaces(page = 1) {
+  try {
+    loadingSpinner.style.display = 'block'
+    spacesGrid.innerHTML = ''
+    noResults.style.display = 'none'
+    removePagination()
 
-        // Load favorites first
-        await loadFavorites();
+    await loadFavorites()
 
-        const params = new URLSearchParams();
-        
-        if (categoryFilter.value) {
-            params.append('category', categoryFilter.value);
-        }
-        
-        if (buildingFilter.value) {
-            params.append('building', buildingFilter.value);
-        }
+    const params = new URLSearchParams()
+    if (categoryFilter.value) params.append('category', categoryFilter.value)
+    if (buildingFilter.value) params.append('building', buildingFilter.value)
+    if (amenitiesFilter?.value)
+      params.append('amenities', amenitiesFilter.value)
+    const searchInput = document.getElementById('searchInput')
+    if (searchInput?.value.trim())
+      params.append('search', searchInput.value.trim())
+    params.append('page', page)
+    params.append('limit', LIMIT)
 
-        // Handle amenities dropdown
-        if (amenitiesFilter && amenitiesFilter.value) {
-            params.append('amenities', amenitiesFilter.value);
-        }
+    const data = await apiCall(`/api/spaces?${params.toString()}`)
+    allSpaces = data.data || []
+    currentPage = data.pagination.currentPage
+    totalPages = data.pagination.totalPages
 
-        const queryString = params.toString();
-        const endpoint = queryString ? `/api/spaces?${queryString}` : '/api/spaces';
-        
-        const data = await apiCall(endpoint);
-        allSpaces = data.data || [];
+    loadingSpinner.style.display = 'none'
 
-        loadingSpinner.style.display = 'none';
-
-        if (allSpaces.length === 0) {
-            noResults.style.display = 'block';
-            return;
-        }
-
-        renderSpaces(allSpaces);
-        populateBuildingFilter();
-    } catch (error) {
-        console.error('Error loading spaces:', error);
-        loadingSpinner.style.display = 'none';
-        spacesGrid.innerHTML = `<p class="error-message">Error loading spaces: ${error.message}</p>`;
+    if (allSpaces.length === 0) {
+      noResults.style.display = 'block'
+      return
     }
+
+    renderSpaces(allSpaces)
+    populateBuildingFilter()
+    renderPagination(data.pagination)
+  } catch (error) {
+    loadingSpinner.style.display = 'none'
+    spacesGrid.innerHTML = `<p class="error-message">Error loading spaces: ${error.message}</p>`
+  }
 }
 
-// Render spaces
 function renderSpaces(spaces) {
-    spacesGrid.innerHTML = '';
-
-    spaces.forEach(space => {
-        const card = createSpaceCard(space);
-        spacesGrid.appendChild(card);
-    });
+  spacesGrid.innerHTML = ''
+  spaces.forEach((space) => spacesGrid.appendChild(createSpaceCard(space)))
 }
 
-// Create space card
 function createSpaceCard(space) {
-    const card = document.createElement('div');
-    card.className = 'space-card';
+  const card = document.createElement('div')
+  card.className = 'space-card'
 
-    const occupancyLevel = getOccupancyLevel(space.currentOccupancy || 0, space.capacity);
-    const occupancyText = formatOccupancy(space.currentOccupancy || 0, space.capacity);
-    const isFavorite = favoriteSpaceIds.has(space._id);
+  const occupancyLevel = getOccupancyLevel(
+    space.currentOccupancy || 0,
+    space.capacity,
+  )
+  const pct = Math.round(((space.currentOccupancy || 0) / space.capacity) * 100)
+  const statusLabel =
+    occupancyLevel === 'low'
+      ? 'Available'
+      : occupancyLevel === 'medium'
+        ? 'Filling Up'
+        : 'Nearly Full'
+  const isFavorite = favoriteSpaceIds.has(space._id)
+  const hoursText = space.is24Hours ? 'Open 24/7' : space.hours?.weekday || null
+  const locationParts = []
+  if (space.floor) locationParts.push(`Floor ${space.floor}`)
+  if (space.location) locationParts.push(space.location)
 
-    card.innerHTML = `
+  card.innerHTML = `
         <div class="space-card-header">
-            <h3 class="space-card-title">${space.name}</h3>
-            <p class="space-card-subtitle">${space.building} - ${space.category}</p>
+            <div class="space-card-header-left">
+                <h3 class="space-card-title">${space.name}</h3>
+                <p class="space-card-subtitle">${space.building}${locationParts.length ? ' · ' + locationParts.join(' · ') : ''}</p>
+            </div>
+            <div class="space-card-badges">
+                <span class="badge-category">${space.category}</span>
+                ${space.is24Hours ? `<span class="badge-24h">24/7</span>` : ''}
+            </div>
         </div>
         <div class="space-card-body">
-            <div class="occupancy">
-                <span class="occupancy-text">${occupancyText}</span>
-                <span class="occupancy-badge ${occupancyLevel}">
-                    ${occupancyLevel === 'low' ? 'Available' : occupancyLevel === 'medium' ? 'Filling Up' : 'Nearly Full'}
-                </span>
+            <div class="occupancy-section">
+                <div class="occupancy-row">
+                    <span class="occupancy-label">Occupancy</span>
+                    <div class="occupancy-numbers">
+                        <span class="occupancy-count">${space.currentOccupancy || 0} / ${space.capacity}</span>
+                        <span class="occupancy-badge ${occupancyLevel}">${statusLabel}</span>
+                    </div>
+                </div>
+                <div class="occupancy-progress">
+                    <div class="occupancy-progress-fill ${occupancyLevel}" style="width: ${pct}%"></div>
+                </div>
             </div>
+            <div class="info-row">
+                <span class="info-item">${space.capacity} seats</span>
+                ${hoursText ? `<span class="info-divider">·</span><span class="info-item">${hoursText}</span>` : ''}
+            </div>
+            ${space.description ? `<p class="space-description">${space.description}</p>` : ''}
             <div class="amenities">
-                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join(' ') : ''}
+                ${space.amenities?.length ? space.amenities.map((a) => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join('') : ''}
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary view-details-btn" data-id="${space._id}">View Details</button>
-                <button class="btn btn-secondary favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-id="${space._id}">♥</button>
+                <button class="btn btn-secondary favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-id="${space._id}">
+                    ${isFavorite ? 'Remove Favourite' : 'Add Favourite'}
+                </button>
             </div>
         </div>
-    `;
+    `
 
-    // View details button
-    const viewDetailsBtn = card.querySelector('.view-details-btn');
-    viewDetailsBtn.addEventListener('click', () => showSpaceDetails(space._id));
-
-    // Favorite button
-    const favoriteBtn = card.querySelector('.favorite-btn');
-    favoriteBtn.addEventListener('click', () => handleToggleFavorite(space._id, favoriteBtn));
-
-    return card;
+  card
+    .querySelector('.view-details-btn')
+    .addEventListener('click', () => showSpaceDetails(space._id))
+  card
+    .querySelector('.favorite-btn')
+    .addEventListener('click', (e) =>
+      handleToggleFavorite(space._id, e.currentTarget),
+    )
+  return card
 }
 
-// Show space details in modal
 async function showSpaceDetails(spaceId) {
-    try {
-        const data = await apiCall(`/api/spaces/${spaceId}`);
-        const space = data.space;
-        
-        const occupancyLevel = getOccupancyLevel(space.currentOccupancy || 0, space.capacity);
-        const occupancyText = formatOccupancy(space.currentOccupancy || 0, space.capacity);
-        const isFavorite = favoriteSpaceIds.has(space._id);
+  try {
+    const data = await apiCall(`/api/spaces/${spaceId}`)
+    const space = data.space
+    const occupancyLevel = getOccupancyLevel(
+      space.currentOccupancy || 0,
+      space.capacity,
+    )
+    const occupancyText = formatOccupancy(
+      space.currentOccupancy || 0,
+      space.capacity,
+    )
+    const isFavorite = favoriteSpaceIds.has(space._id)
 
-        spaceDetails.innerHTML = `
+    spaceDetails.innerHTML = `
             <div class="space-detail-header">
                 <h2>${space.name}</h2>
-                <p>${space.building} - ${space.location || ''}</p>
+                <p>${space.building}${space.location ? ' · ' + space.location : ''}</p>
             </div>
-            
             <div class="space-detail-occupancy">
                 <h3>Current Occupancy</h3>
                 <p class="occupancy-text">${occupancyText}</p>
@@ -162,130 +185,199 @@ async function showSpaceDetails(spaceId) {
                     ${occupancyLevel === 'low' ? 'Available' : occupancyLevel === 'medium' ? 'Filling Up' : 'Nearly Full'}
                 </span>
             </div>
-
             <div class="space-detail-info">
                 <h3>About</h3>
                 <p><strong>Category:</strong> ${space.category}</p>
                 <p><strong>Capacity:</strong> ${space.capacity} seats</p>
                 ${space.description ? `<p><strong>Description:</strong> ${space.description}</p>` : ''}
-                ${space.hours ? `<p><strong>Hours:</strong> ${space.hours.weekday || 'Not specified'}</p>` : ''}
+                ${space.hours ? `<p><strong>Hours:</strong> ${space.is24Hours ? 'Open 24/7' : space.hours.weekday || 'Not specified'}</p>` : ''}
             </div>
-
             <div class="space-detail-amenities">
                 <h3>Amenities</h3>
                 <div class="amenities">
-                    ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join(' ') : 'None listed'}
+                    ${space.amenities?.length ? space.amenities.map((a) => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join('') : 'None listed'}
                 </div>
             </div>
-
             <div class="space-detail-actions">
                 <button class="btn btn-primary" id="modalCheckinBtn">Check In Here</button>
                 <button class="btn btn-secondary ${isFavorite ? 'is-favorite' : ''}" id="modalFavoriteBtn">
-                    ${isFavorite ? '♥ Remove from Favorites' : '♡ Add to Favorites'}
+                    ${isFavorite ? 'Remove Favourite' : 'Add Favourite'}
                 </button>
             </div>
-        `;
+        `
 
-        spaceModal.style.display = 'flex';
+    spaceModal.style.display = 'flex'
 
-        // Modal check-in button
-        document.getElementById('modalCheckinBtn').addEventListener('click', async () => {
-            await handleCheckIn(spaceId);
-            spaceModal.style.display = 'none';
-        });
+    document
+      .getElementById('modalCheckinBtn')
+      .addEventListener('click', async () => {
+        await handleCheckIn(spaceId)
+        spaceModal.style.display = 'none'
+      })
 
-        // Modal favorite button
-        const modalFavoriteBtn = document.getElementById('modalFavoriteBtn');
-        modalFavoriteBtn.addEventListener('click', async () => {
-            await handleToggleFavorite(spaceId, modalFavoriteBtn);
-            // Update the button text and class
-            const nowFavorite = favoriteSpaceIds.has(spaceId);
-            modalFavoriteBtn.textContent = nowFavorite ? '♥ Remove from Favorites' : '♡ Add to Favorites';
-            modalFavoriteBtn.classList.toggle('is-favorite', nowFavorite);
-        });
-
-    } catch (error) {
-        alert('Error loading space details: ' + error.message);
-    }
+    const modalFavoriteBtn = document.getElementById('modalFavoriteBtn')
+    modalFavoriteBtn.addEventListener('click', async () => {
+      await handleToggleFavorite(spaceId, modalFavoriteBtn)
+      const nowFavorite = favoriteSpaceIds.has(spaceId)
+      modalFavoriteBtn.textContent = nowFavorite
+        ? 'Remove Favourite'
+        : 'Add Favourite'
+      modalFavoriteBtn.classList.toggle('is-favorite', nowFavorite)
+    })
+  } catch (error) {
+    alert('Error loading space details: ' + error.message)
+  }
 }
 
-// Close modal
 modalClose?.addEventListener('click', () => {
-    spaceModal.style.display = 'none';
-});
-
-// Close modal on outside click
+  spaceModal.style.display = 'none'
+})
 spaceModal?.addEventListener('click', (e) => {
-    if (e.target === spaceModal) {
-        spaceModal.style.display = 'none';
-    }
-});
+  if (e.target === spaceModal) spaceModal.style.display = 'none'
+})
 
-// Handle check-in
 async function handleCheckIn(spaceId) {
-    try {
-        await apiCall('/api/checkins/checkin', {
-            method: 'POST',
-            body: JSON.stringify({ spaceId })
-        });
-        alert('Checked in successfully!');
-        loadSpaces();
-    } catch (error) {
-        alert('Error checking in: ' + error.message);
-    }
+  try {
+    await apiCall('/api/checkins/checkin', {
+      method: 'POST',
+      body: JSON.stringify({ spaceId }),
+    })
+    alert('Checked in successfully!')
+    loadSpaces(currentPage)
+  } catch (error) {
+    alert('Error checking in: ' + error.message)
+  }
 }
 
-// Handle toggle favorite
 async function handleToggleFavorite(spaceId, buttonElement) {
-    try {
-        const isFavorite = favoriteSpaceIds.has(spaceId);
-        
-        if (isFavorite) {
-            // Remove from favorites
-            await apiCall(`/api/favorites/remove/${spaceId}`, {
-                method: 'DELETE'
-            });
-            favoriteSpaceIds.delete(spaceId);
-            buttonElement.classList.remove('is-favorite');
-            alert('Removed from favorites!');
-        } else {
-            // Add to favorites
-            await apiCall('/api/favorites/add', {
-                method: 'POST',
-                body: JSON.stringify({ spaceId })
-            });
-            favoriteSpaceIds.add(spaceId);
-            buttonElement.classList.add('is-favorite');
-            alert('Added to favorites!');
-        }
-    } catch (error) {
-        alert('Error: ' + error.message);
+  try {
+    const isFavorite = favoriteSpaceIds.has(spaceId)
+    if (isFavorite) {
+      await apiCall(`/api/favorites/remove/${spaceId}`, { method: 'DELETE' })
+      favoriteSpaceIds.delete(spaceId)
+      buttonElement.classList.remove('is-favorite')
+      buttonElement.textContent = 'Add Favourite'
+    } else {
+      await apiCall('/api/favorites/add', {
+        method: 'POST',
+        body: JSON.stringify({ spaceId }),
+      })
+      favoriteSpaceIds.add(spaceId)
+      buttonElement.classList.add('is-favorite')
+      buttonElement.textContent = 'Remove Favourite'
     }
+  } catch (error) {
+    alert('Error: ' + error.message)
+  }
 }
 
-// Populate building filter
 function populateBuildingFilter() {
-    const buildings = [...new Set(allSpaces.map(s => s.building))];
-    buildingFilter.innerHTML = '<option value="">All Buildings</option>';
-    buildings.forEach(building => {
-        const option = document.createElement('option');
-        option.value = building;
-        option.textContent = building;
-        buildingFilter.appendChild(option);
-    });
+  const buildings = [...new Set(allSpaces.map((s) => s.building))]
+  buildingFilter.innerHTML = '<option value="">All Buildings</option>'
+  buildings.forEach((building) => {
+    const option = document.createElement('option')
+    option.value = building
+    option.textContent = building
+    buildingFilter.appendChild(option)
+  })
 }
 
-// Filter handlers
-categoryFilter?.addEventListener('change', loadSpaces);
-buildingFilter?.addEventListener('change', loadSpaces);
-amenitiesFilter?.addEventListener('change', loadSpaces);
+function renderPagination(pagination) {
+  if (pagination.totalPages <= 1) return
+  const section = document.querySelector('.spaces-section')
+  const paginationEl = document.createElement('div')
+  paginationEl.className = 'pagination'
+  paginationEl.id = 'pagination'
 
-// Clear filters
+  const prevBtn = document.createElement('button')
+  prevBtn.className = `pagination-btn ${!pagination.hasPrevPage ? 'disabled' : ''}`
+  prevBtn.textContent = '← Prev'
+  prevBtn.disabled = !pagination.hasPrevPage
+  prevBtn.addEventListener('click', () => {
+    if (pagination.hasPrevPage) {
+      loadSpaces(currentPage - 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  })
+
+  const pageNumbers = document.createElement('div')
+  pageNumbers.className = 'pagination-numbers'
+  getPageRange(pagination.currentPage, pagination.totalPages).forEach((p) => {
+    if (p === '...') {
+      const dots = document.createElement('span')
+      dots.className = 'pagination-dots'
+      dots.textContent = '...'
+      pageNumbers.appendChild(dots)
+    } else {
+      const btn = document.createElement('button')
+      btn.className = `pagination-number ${p === pagination.currentPage ? 'active' : ''}`
+      btn.textContent = p
+      btn.addEventListener('click', () => {
+        loadSpaces(p)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      })
+      pageNumbers.appendChild(btn)
+    }
+  })
+
+  const nextBtn = document.createElement('button')
+  nextBtn.className = `pagination-btn ${!pagination.hasNextPage ? 'disabled' : ''}`
+  nextBtn.textContent = 'Next →'
+  nextBtn.disabled = !pagination.hasNextPage
+  nextBtn.addEventListener('click', () => {
+    if (pagination.hasNextPage) {
+      loadSpaces(currentPage + 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  })
+
+  paginationEl.appendChild(prevBtn)
+  paginationEl.appendChild(pageNumbers)
+  paginationEl.appendChild(nextBtn)
+  section.appendChild(paginationEl)
+}
+
+function getPageRange(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
+  if (current >= total - 3)
+    return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
+  return [1, '...', current - 1, current, current + 1, '...', total]
+}
+
+function removePagination() {
+  document.getElementById('pagination')?.remove()
+}
+
+const searchInputEl = document.getElementById('searchInput')
+searchInputEl?.addEventListener('input', () => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    currentPage = 1
+    loadSpaces(1)
+  }, 400)
+})
+
+categoryFilter?.addEventListener('change', () => {
+  currentPage = 1
+  loadSpaces(1)
+})
+buildingFilter?.addEventListener('change', () => {
+  currentPage = 1
+  loadSpaces(1)
+})
+amenitiesFilter?.addEventListener('change', () => {
+  currentPage = 1
+  loadSpaces(1)
+})
+
 clearFiltersBtn?.addEventListener('click', () => {
-    categoryFilter.value = '';
-    buildingFilter.value = '';
-    if (amenitiesFilter) amenitiesFilter.value = '';
-    loadSpaces();
-});
+  if (searchInputEl) searchInputEl.value = ''
+  categoryFilter.value = ''
+  buildingFilter.value = ''
+  if (amenitiesFilter) amenitiesFilter.value = ''
+  currentPage = 1
+  loadSpaces(1)
+})
 
-loadSpaces();
+init()

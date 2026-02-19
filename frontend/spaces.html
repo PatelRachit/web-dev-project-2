@@ -20,6 +20,7 @@
                 <li><a href="index.html">Dashboard</a></li>
                 <li><a href="spaces.html" class="active">Spaces</a></li>
                 <li><a href="favorites.html">Favorites</a></li>
+                <li id="adminNavItem" style="display:none;"><a href="admin.html">Admin</a></li>
                 <li><a href="#" id="logoutBtn">Logout</a></li>
             </ul>
         </div>
@@ -34,6 +35,10 @@
 
         <!-- Filters -->
         <section class="filters-section">
+            <div class="search-bar" style="margin-bottom: 1rem;">
+                <input type="text" id="searchInput" class="search-input"
+                    placeholder="Search spaces by name or building...">
+            </div>
             <div class="filters">
                 <div class="filter-group">
                     <label for="categoryFilter">Category:</label>

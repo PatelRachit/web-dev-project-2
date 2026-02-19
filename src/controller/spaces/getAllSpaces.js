@@ -18,6 +18,10 @@ export async function getAllSpaces(req, res) {
       filters.amenities = req.query.amenities.split(',').map((a) => a.trim())
     }
 
+    if (req.query.search) {
+      filters.search = req.query.search
+    }
+
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10
     const skip = (page - 1) * limit

@@ -1,4 +1,3 @@
-// API Base URL
 export const API_BASE_URL = ''
 
 export async function isAuthenticated() {
@@ -7,37 +6,64 @@ export async function isAuthenticated() {
       credentials: 'include',
     })
     return response.ok
-  } catch (error) {
+  } catch {
     return false
   }
 }
 
-// Redirect to login if not authenticated
+export async function getCurrentUser() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
+      credentials: 'include',
+    })
+    if (!response.ok) return null
+    const data = await response.json()
+    return data.user || null
+  } catch {
+    return null
+  }
+}
+
 export async function requireAuth() {
-  const authenticated = await isAuthenticated()
-  if (!authenticated) {
+  const user = await getCurrentUser()
+  if (!user) {
     window.location.href = '/login.html'
-    return false
+    return null
   }
-  return true
+  return user
 }
 
-// API call helper
+export async function requireAdmin() {
+  const user = await getCurrentUser()
+  if (!user) {
+    window.location.href = '/login.html'
+    return null
+  }
+  if (!user.isAdmin) {
+    window.location.href = '/index.html'
+    return null
+  }
+  return user
+}
+
+export async function showAdminNavIfAdmin() {
+  const user = await getCurrentUser()
+  if (user?.isAdmin) {
+    const adminNavItem = document.getElementById('adminNavItem')
+    if (adminNavItem) adminNavItem.style.display = 'block'
+  }
+}
+
 export async function apiCall(endpoint, options = {}) {
   const defaultOptions = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...defaultOptions,
     ...options,
-    headers: {
-      ...defaultOptions.headers,
-      ...options.headers,
-    },
+    headers: { ...defaultOptions.headers, ...options.headers },
   })
 
   if (!response.ok) {
@@ -48,29 +74,23 @@ export async function apiCall(endpoint, options = {}) {
   return response.json()
 }
 
-// Logout function
 export async function logout() {
   try {
     await apiCall('/api/auth/logout', { method: 'POST' })
-    window.location.href = '/login.html'
-  } catch (error) {
-    console.error('Logout error:', error)
-    window.location.href = '/login.html'
+  } catch {
+    // proceed to redirect regardless
   }
+  window.location.href = '/login.html'
 }
 
-// Logout button handler
 document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn = document.getElementById('logoutBtn')
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault()
-      logout()
-    })
-  }
+  logoutBtn?.addEventListener('click', (e) => {
+    e.preventDefault()
+    logout()
+  })
 })
 
-// Show error message
 export function showError(elementId, message) {
   const element = document.getElementById(elementId)
   if (element) {
@@ -79,15 +99,11 @@ export function showError(elementId, message) {
   }
 }
 
-// Hide error message
 export function hideError(elementId) {
   const element = document.getElementById(elementId)
-  if (element) {
-    element.style.display = 'none'
-  }
+  if (element) element.style.display = 'none'
 }
 
-// Get occupancy level (low, medium, high)
 export function getOccupancyLevel(current, capacity) {
   const percentage = (current / capacity) * 100
   if (percentage < 60) return 'low'

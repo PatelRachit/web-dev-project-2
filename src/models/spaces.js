@@ -24,6 +24,14 @@ export async function getAllSpaces(filters = {}, options = {}) {
     query.amenities = { $all: filters.amenities }
   }
 
+  if (filters.search) {
+    query.$or = [
+      { name: { $regex: filters.search, $options: 'i' } },
+      { building: { $regex: filters.search, $options: 'i' } },
+      { category: { $regex: filters.search, $options: 'i' } },
+    ]
+  }
+
   // Get total count for pagination
   const total = await spacesCollection.countDocuments(query)
 

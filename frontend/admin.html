@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpotCheck - Admin Panel</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>SpotCheck <span class="admin-badge">Admin</span></h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Dashboard</a></li>
+                <li><a href="spaces.html">Spaces</a></li>
+                <li><a href="favorites.html">Favorites</a></li>
+                <li><a href="admin.html" class="active">Admin</a></li>
+                <li><a href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="page-header-content">
+                <div>
+                    <h2>Admin Panel</h2>
+                    <p>Manage campus study spaces</p>
+                </div>
+                <button class="btn btn-primary" id="addSpaceBtn">+ Add New Space</button>
+            </div>
+        </section>
+
+        <!-- Stats Row -->
+        <section class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <span class="stat-number" id="totalSpaces">—</span>
+                <span class="stat-label">Total Spaces</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalCapacity">—</span>
+                <span class="stat-label">Total Capacity</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="availableSpaces">—</span>
+                <span class="stat-label">Available Now</span>
+            </div>
+        </section>
+
+        <!-- Spaces Table -->
+        <section class="table-section">
+            <div class="table-header">
+                <h3>All Spaces</h3>
+                <input type="text" id="adminSearch" class="admin-search" placeholder="Search spaces...">
+            </div>
+            <div id="loadingSpinner" class="loading">Loading spaces...</div>
+            <div class="table-wrapper">
+                <table class="admin-table" id="spacesTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Building</th>
+                            <th>Category</th>
+                            <th>Capacity</th>
+                            <th>Occupancy</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spacesTableBody"></tbody>
+                </table>
+            </div>
+            <div id="noResults" class="no-results" style="display:none;">No spaces found.</div>
+        </section>
+    </main>
+
+    <!-- Add / Edit Space Modal -->
+    <div id="spaceModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Space</h3>
+                <span class="modal-close" id="modalClose">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="formError" class="error-message" style="display:none;"></div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="spaceName">Space Name *</label>
+                        <input type="text" id="spaceName" placeholder="e.g. Science Library - Study Area 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="spaceBuilding">Building *</label>
+                        <input type="text" id="spaceBuilding" placeholder="e.g. Science Library">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="spaceCategory">Category *</label>
+                        <select id="spaceCategory">
+                            <option value="">Select category</option>
+                            <option value="library">Library</option>
+                            <option value="cafe">Cafe</option>
+                            <option value="lounge">Lounge</option>
+                            <option value="study_room">Study Room</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="spaceCapacity">Capacity *</label>
+                        <input type="number" id="spaceCapacity" placeholder="e.g. 50" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="spaceLocation">Location / Floor</label>
+                    <input type="text" id="spaceLocation" placeholder="e.g. 2nd Floor, East Wing">
+                </div>
+
+                <div class="form-group">
+                    <label for="spaceDescription">Description</label>
+                    <textarea id="spaceDescription" rows="3" placeholder="Brief description of the space..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Amenities</label>
+                    <div class="amenities-checkboxes">
+                        <label class="checkbox-label"><input type="checkbox" value="wifi"> WiFi</label>
+                        <label class="checkbox-label"><input type="checkbox" value="outlets"> Outlets</label>
+                        <label class="checkbox-label"><input type="checkbox" value="whiteboard"> Whiteboard</label>
+                        <label class="checkbox-label"><input type="checkbox" value="quiet"> Quiet</label>
+                        <label class="checkbox-label"><input type="checkbox" value="food_allowed"> Food Allowed</label>
+                        <label class="checkbox-label"><input type="checkbox" value="group_seating"> Group
+                            Seating</label>
+                        <label class="checkbox-label"><input type="checkbox" value="individual_desks"> Individual
+                            Desks</label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="hoursWeekday">Weekday Hours</label>
+                        <input type="text" id="hoursWeekday" placeholder="e.g. 8:00 AM - 10:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label for="hoursWeekend">Weekend Hours</label>
+                        <input type="text" id="hoursWeekend" placeholder="e.g. 10:00 AM - 6:00 PM">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveSpaceBtn">Save Space</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div id="deleteModal" class="modal" style="display:none;">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Delete Space</h3>
+                <span class="modal-close" id="deleteModalClose">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteSpaceName"></strong>? This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 SpotCheck - Admin Panel</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/admin.js"></script>
+</body>
+
+</html>

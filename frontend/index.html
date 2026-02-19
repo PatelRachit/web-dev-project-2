@@ -10,7 +10,6 @@
 </head>
 
 <body>
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
@@ -20,30 +19,31 @@
                 <li><a href="index.html" class="active">Dashboard</a></li>
                 <li><a href="spaces.html">Spaces</a></li>
                 <li><a href="favorites.html">Favorites</a></li>
+                <li id="adminNavItem" style="display:none;"><a href="admin.html">Admin</a></li>
                 <li><a href="#" id="logoutBtn">Logout</a></li>
             </ul>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="container">
-        <!-- Current Check-in Status -->
-        <section class="status-banner" id="statusBanner">
-            <div class="status-content">
-                <p id="statusText">Not currently checked in</p>
-                <button id="checkoutBtn" class="btn btn-secondary" style="display: none;">Check Out</button>
-            </div>
-        </section>
+    <section class="status-banner" id="statusBanner" style="display: none;">
+        <div class="status-content">
+            <span class="status-dot"></span>
+            <p id="statusText">Not currently checked in</p>
+            <button id="checkoutBtn" class="btn">Check Out</button>
+        </div>
+    </section>
 
-        <!-- Welcome Section -->
+    <main class="container">
         <section class="welcome-section">
             <h2>Find Your Perfect Study Space</h2>
             <p>Real-time occupancy tracking for campus study spaces</p>
         </section>
 
-        <!-- Search and Filters -->
         <section class="search-section">
-
+            <div class="search-bar">
+                <input type="text" id="searchInput" class="search-input"
+                    placeholder="Search spaces by name or building...">
+            </div>
             <div class="filters">
                 <div class="filter-group">
                     <label for="categoryFilter">Category:</label>
@@ -55,14 +55,12 @@
                         <option value="study_room">Study Room</option>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="buildingFilter">Building:</label>
                     <select id="buildingFilter" class="filter-select">
                         <option value="">All Buildings</option>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="amenitiesFilter">Amenities:</label>
                     <select id="amenitiesFilter" class="filter-select">
@@ -76,32 +74,26 @@
                         <option value="individual_desks">Individual Desks</option>
                     </select>
                 </div>
-
                 <button id="clearFilters" class="btn btn-secondary">Clear Filters</button>
             </div>
         </section>
 
-        <!-- Spaces Grid -->
         <section class="spaces-section">
             <h3>Available Study Spaces</h3>
             <div id="loadingSpinner" class="loading">Loading spaces...</div>
-            <div id="spacesGrid" class="spaces-grid">
-                <!-- Spaces will be dynamically loaded here -->
-            </div>
+            <div id="spacesGrid" class="spaces-grid"></div>
             <div id="noResults" class="no-results" style="display: none;">
                 No spaces found matching your criteria.
             </div>
         </section>
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <p>&copy; 2026 SpotCheck - Rachit Patel & Prajakta Avachat</p>
         </div>
     </footer>
 
-    <!-- JavaScript Modules -->
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/dashboard.js"></script>
 </body>

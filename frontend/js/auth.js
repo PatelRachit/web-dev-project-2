@@ -1,6 +1,41 @@
 import { API_BASE_URL, showError, hideError } from './main.js'
 
-// Toggle between login and register forms
+const ERROR_MESSAGES = {
+  WRONG_PASSWORD: 'Incorrect password. Please try again.',
+  NOT_FOUND: 'No account found with that email address.',
+  EMAIL_ALREADY_EXISTS: 'An account with this email already exists.',
+  EMAIL_IS_NOT_VALID: 'Please enter a valid email address.',
+  INVALID_PASSWORD_FORMAT: 'Password format is invalid.',
+  PASSWORD_TOO_SHORT_MIN_5: 'Password must be at least 5 characters.',
+  UNAUTHORIZED: 'You are not authorized to perform this action.',
+  MISSING: 'Please fill in all required fields.',
+  GRADUATION_YEAR_MUST_BE_NUMERIC: 'Graduation year must be a number.',
+}
+
+function formatFieldName(path) {
+  if (!path) return 'Field'
+  return path.charAt(0).toUpperCase() + path.slice(1).replace(/([A-Z])/g, ' $1')
+}
+
+function getFriendlyError(data) {
+  const errors = data?.errors?.msg
+
+  if (Array.isArray(errors) && errors.length > 0) {
+    const err = errors[0]
+    if (ERROR_MESSAGES[err.msg]) return ERROR_MESSAGES[err.msg]
+    return `${formatFieldName(err.path)}: ${err.msg}`
+  }
+
+  if (typeof errors === 'string') {
+    return ERROR_MESSAGES[errors] || errors
+  }
+
+  const code = data?.errors?.msg || data?.message || ''
+  return (
+    ERROR_MESSAGES[code] || code || 'Something went wrong. Please try again.'
+  )
+}
+
 const showRegisterLink = document.getElementById('showRegister')
 const showLoginLink = document.getElementById('showLogin')
 const loginForm = document.getElementById('loginForm')
@@ -18,7 +53,7 @@ showLoginLink?.addEventListener('click', (e) => {
   loginForm.style.display = 'block'
 })
 
-// Handle Login
+// Login
 const loginFormElement = document.getElementById('loginFormElement')
 loginFormElement?.addEventListener('submit', async (e) => {
   e.preventDefault()
@@ -30,29 +65,21 @@ loginFormElement?.addEventListener('submit', async (e) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ email, password }),
     })
 
     const data = await response.json()
+    if (!response.ok) throw new Error(getFriendlyError(data))
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Login failed')
-    }
-
-    console.log('Login successful:', data)
-
-    // Redirect to dashboard
     window.location.href = '/index.html'
   } catch (error) {
     showError('loginError', error.message)
   }
 })
 
-// Handle Register
+// Register
 const registerFormElement = document.getElementById('registerFormElement')
 registerFormElement?.addEventListener('submit', async (e) => {
   e.preventDefault()
@@ -64,7 +91,6 @@ registerFormElement?.addEventListener('submit', async (e) => {
   const major = document.getElementById('registerMajor').value
   const graduationYear = document.getElementById('registerGradYear').value
 
-  // Basic validation
   if (password.length < 6) {
     showError('registerError', 'Password must be at least 6 characters')
     return
@@ -72,33 +98,19 @@ registerFormElement?.addEventListener('submit', async (e) => {
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/user`, {
-      // CHANGED
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        major,
-        graduationYear,
-      }),
+      body: JSON.stringify({ name, email, password, major, graduationYear }),
     })
 
     const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Registration failed')
-    }
+    if (!response.ok) throw new Error(getFriendlyError(data))
 
     // Auto-login after registration
     const loginResponse = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ email, password }),
     })
