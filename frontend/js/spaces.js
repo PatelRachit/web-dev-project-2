@@ -25,6 +25,19 @@ const spaceDetails = document.getElementById('spaceDetails');
 const modalClose = document.querySelector('.modal-close');
 
 let allSpaces = [];
+let favoriteSpaceIds = new Set();
+
+// Load user's favorites
+async function loadFavorites() {
+    try {
+        const data = await apiCall('/api/favorites');
+        const favorites = data.favourites || [];
+        favoriteSpaceIds = new Set(favorites.map(fav => fav._id));
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+        favoriteSpaceIds = new Set();
+    }
+}
 
 // Load spaces
 async function loadSpaces() {
@@ -32,6 +45,9 @@ async function loadSpaces() {
         loadingSpinner.style.display = 'block';
         spacesGrid.innerHTML = '';
         noResults.style.display = 'none';
+
+        // Load favorites first
+        await loadFavorites();
 
         const params = new URLSearchParams();
         
@@ -55,7 +71,7 @@ async function loadSpaces() {
         const endpoint = queryString ? `/api/spaces?${queryString}` : '/api/spaces';
         
         const data = await apiCall(endpoint);
-        allSpaces = data.spaces || [];
+        allSpaces = data.data || [];
 
         loadingSpinner.style.display = 'none';
 
@@ -90,6 +106,7 @@ function createSpaceCard(space) {
 
     const occupancyLevel = getOccupancyLevel(space.currentOccupancy || 0, space.capacity);
     const occupancyText = formatOccupancy(space.currentOccupancy || 0, space.capacity);
+    const isFavorite = favoriteSpaceIds.has(space._id);
 
     card.innerHTML = `
         <div class="space-card-header">
@@ -104,11 +121,11 @@ function createSpaceCard(space) {
                 </span>
             </div>
             <div class="amenities">
-                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join('') : ''}
+                ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join(' ') : ''}
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary view-details-btn" data-id="${space._id}">View Details</button>
-                <button class="btn btn-secondary favorite-btn" data-id="${space._id}">♥</button>
+                <button class="btn btn-secondary favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-id="${space._id}">♥</button>
             </div>
         </div>
     `;
@@ -119,7 +136,7 @@ function createSpaceCard(space) {
 
     // Favorite button
     const favoriteBtn = card.querySelector('.favorite-btn');
-    favoriteBtn.addEventListener('click', () => handleToggleFavorite(space._id));
+    favoriteBtn.addEventListener('click', () => handleToggleFavorite(space._id, favoriteBtn));
 
     return card;
 }
@@ -132,6 +149,7 @@ async function showSpaceDetails(spaceId) {
         
         const occupancyLevel = getOccupancyLevel(space.currentOccupancy || 0, space.capacity);
         const occupancyText = formatOccupancy(space.currentOccupancy || 0, space.capacity);
+        const isFavorite = favoriteSpaceIds.has(space._id);
 
         spaceDetails.innerHTML = `
             <div class="space-detail-header">
@@ -158,13 +176,15 @@ async function showSpaceDetails(spaceId) {
             <div class="space-detail-amenities">
                 <h3>Amenities</h3>
                 <div class="amenities">
-                    ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join('') : 'None listed'}
+                    ${space.amenities ? space.amenities.map(a => `<span class="amenity-tag">${a}</span>`).join(' ') : 'None listed'}
                 </div>
             </div>
 
             <div class="space-detail-actions">
                 <button class="btn btn-primary" id="modalCheckinBtn">Check In Here</button>
-                <button class="btn btn-secondary" id="modalFavoriteBtn">Add to Favorites</button>
+                <button class="btn btn-secondary ${isFavorite ? 'is-favorite' : ''}" id="modalFavoriteBtn">
+                    ${isFavorite ? '♥ Remove from Favorites' : '♡ Add to Favorites'}
+                </button>
             </div>
         `;
 
@@ -177,8 +197,13 @@ async function showSpaceDetails(spaceId) {
         });
 
         // Modal favorite button
-        document.getElementById('modalFavoriteBtn').addEventListener('click', async () => {
-            await handleToggleFavorite(spaceId);
+        const modalFavoriteBtn = document.getElementById('modalFavoriteBtn');
+        modalFavoriteBtn.addEventListener('click', async () => {
+            await handleToggleFavorite(spaceId, modalFavoriteBtn);
+            // Update the button text and class
+            const nowFavorite = favoriteSpaceIds.has(spaceId);
+            modalFavoriteBtn.textContent = nowFavorite ? '♥ Remove from Favorites' : '♡ Add to Favorites';
+            modalFavoriteBtn.classList.toggle('is-favorite', nowFavorite);
         });
 
     } catch (error) {
@@ -213,13 +238,28 @@ async function handleCheckIn(spaceId) {
 }
 
 // Handle toggle favorite
-async function handleToggleFavorite(spaceId) {
+async function handleToggleFavorite(spaceId, buttonElement) {
     try {
-        await apiCall('/api/favorites/add', {
-            method: 'POST',
-            body: JSON.stringify({ spaceId })
-        });
-        alert('Added to favorites!');
+        const isFavorite = favoriteSpaceIds.has(spaceId);
+        
+        if (isFavorite) {
+            // Remove from favorites
+            await apiCall(`/api/favorites/remove/${spaceId}`, {
+                method: 'DELETE'
+            });
+            favoriteSpaceIds.delete(spaceId);
+            buttonElement.classList.remove('is-favorite');
+            alert('Removed from favorites!');
+        } else {
+            // Add to favorites
+            await apiCall('/api/favorites/add', {
+                method: 'POST',
+                body: JSON.stringify({ spaceId })
+            });
+            favoriteSpaceIds.add(spaceId);
+            buttonElement.classList.add('is-favorite');
+            alert('Added to favorites!');
+        }
     } catch (error) {
         alert('Error: ' + error.message);
     }

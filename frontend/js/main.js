@@ -1,40 +1,33 @@
 // API Base URL
 export const API_BASE_URL = 'http://localhost:5000';
 
-// Get auth token from cookie
-export function getAuthToken() {
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'authToken') {
-            return value;
-        }
+// Check if user is authenticated by calling the token verification endpoint
+export async function isAuthenticated() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
+            credentials: 'include'
+        });
+        return response.ok;
+    } catch (error) {
+        return false;
     }
-    return null;
-}
-
-// Check if user is authenticated
-export function isAuthenticated() {
-    return getAuthToken() !== null;
 }
 
 // Redirect to login if not authenticated
-export function requireAuth() {
-    if (!isAuthenticated()) {
+export async function requireAuth() {
+    const authenticated = await isAuthenticated();
+    if (!authenticated) {
         window.location.href = '/login.html';
         return false;
     }
     return true;
 }
 
-// API call helper with authentication
+// API call helper 
 export async function apiCall(endpoint, options = {}) {
-    const token = getAuthToken();
-    
     const defaultOptions = {
         headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
+            'Content-Type': 'application/json'
         },
         credentials: 'include'
     };
@@ -59,13 +52,10 @@ export async function apiCall(endpoint, options = {}) {
 // Logout function
 export async function logout() {
     try {
-        await apiCall('/api/auth/logout', { method: 'POST' });  // CHANGED: Added /api/auth
-        document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        await apiCall('/api/auth/logout', { method: 'POST' });
         window.location.href = '/login.html';
     } catch (error) {
         console.error('Logout error:', error);
-        // Force logout even if API call fails
-        document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         window.location.href = '/login.html';
     }
 }
