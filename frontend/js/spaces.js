@@ -255,13 +255,6 @@ async function showSpaceDetails(spaceId) {
   }
 }
 
-modalClose?.addEventListener('click', () => {
-  spaceModal.style.display = 'none'
-})
-spaceModal?.addEventListener('click', (e) => {
-  if (e.target === spaceModal) spaceModal.style.display = 'none'
-})
-
 async function handleCheckIn(spaceId) {
   try {
     await apiCall('/api/checkins/checkin', {
@@ -376,6 +369,14 @@ function removePagination() {
   document.getElementById('pagination')?.remove()
 }
 
+modalClose?.addEventListener('click', () => {
+  spaceModal.style.display = 'none'
+})
+
+spaceModal?.addEventListener('click', (e) => {
+  if (e.target === spaceModal) spaceModal.style.display = 'none'
+})
+
 const searchInputEl = document.getElementById('searchInput')
 searchInputEl?.addEventListener('input', () => {
   clearTimeout(searchTimeout)
@@ -389,10 +390,12 @@ categoryFilter?.addEventListener('change', () => {
   currentPage = 1
   loadSpaces(1)
 })
+
 buildingFilter?.addEventListener('change', () => {
   currentPage = 1
   loadSpaces(1)
 })
+
 amenitiesFilter?.addEventListener('change', () => {
   currentPage = 1
   loadSpaces(1)
@@ -406,134 +409,5 @@ clearFiltersBtn?.addEventListener('click', () => {
   currentPage = 1
   loadSpaces(1)
 })
-
-async function showSpaceDetails(spaceId) {
-  try {
-    const data = await apiCall(`/api/spaces/${spaceId}`)
-    const space = data.space
-    const occupancyLevel = getOccupancyLevel(
-      space.currentOccupancy || 0,
-      space.capacity,
-    )
-    const occupancyText = formatOccupancy(
-      space.currentOccupancy || 0,
-      space.capacity,
-    )
-    const isFavorite = favoriteSpaceIds.has(space._id)
-    const isCheckedIn = currentCheckedInSpaceId === space._id
-
-    spaceDetails.innerHTML = `
-            <div class="space-detail-header">
-                <h2>${space.name}</h2>
-                <p>${space.building}${space.location ? ' · ' + space.location : ''}</p>
-            </div>
-            <div class="space-detail-occupancy">
-                <h3>Current Occupancy</h3>
-                <p class="occupancy-text">${occupancyText}</p>
-                <span class="occupancy-badge ${occupancyLevel}">
-                    ${occupancyLevel === 'low' ? 'Available' : occupancyLevel === 'medium' ? 'Filling Up' : 'Nearly Full'}
-                </span>
-            </div>
-            <div class="space-detail-info">
-                <h3>About</h3>
-                <p><strong>Category:</strong> ${space.category}</p>
-                <p><strong>Capacity:</strong> ${space.capacity} seats</p>
-                ${space.description ? `<p><strong>Description:</strong> ${space.description}</p>` : ''}
-                ${space.hours ? `<p><strong>Hours:</strong> ${space.is24Hours ? 'Open 24/7' : space.hours.weekday || 'Not specified'}</p>` : ''}
-            </div>
-            <div class="space-detail-amenities">
-                <h3>Amenities</h3>
-                <div class="amenities">
-                    ${space.amenities?.length ? space.amenities.map((a) => `<span class="amenity-tag">${formatAmenity(a)}</span>`).join('') : 'None listed'}
-                </div>
-            </div>
-            <div class="space-detail-actions">
-                <button class="btn ${isCheckedIn ? 'btn-success' : 'btn-primary'}" id="modalCheckinBtn" ${isCheckedIn ? 'disabled' : ''}>
-                    ${isCheckedIn ? '✓ Checked In' : 'Check In Here'}
-                </button>
-                <button class="btn btn-secondary ${isFavorite ? 'is-favorite' : ''}" id="modalFavoriteBtn">
-                    ${isFavorite ? 'Remove Favourite' : 'Add Favourite'}
-                </button>
-            </div>
-        `
-
-    spaceModal.style.display = 'flex'
-
-    document
-      .getElementById('modalCheckinBtn')
-      .addEventListener('click', async () => {
-        if (!isCheckedIn) {
-          await handleCheckIn(spaceId)
-          spaceModal.style.display = 'none'
-        }
-      })
-
-    const modalFavoriteBtn = document.getElementById('modalFavoriteBtn')
-    modalFavoriteBtn.addEventListener('click', async () => {
-      await handleToggleFavorite(spaceId, modalFavoriteBtn)
-      const nowFavorite = favoriteSpaceIds.has(spaceId)
-      modalFavoriteBtn.textContent = nowFavorite
-        ? 'Remove Favourite'
-        : 'Add Favourite'
-      modalFavoriteBtn.classList.toggle('is-favorite', nowFavorite)
-    })
-  } catch (error) {
-    alert('Error loading space details: ' + error.message)
-  }
-}
-
-modalClose?.addEventListener('click', () => {
-  spaceModal.style.display = 'none'
-})
-spaceModal?.addEventListener('click', (e) => {
-  if (e.target === spaceModal) spaceModal.style.display = 'none'
-})
-
-async function handleCheckIn(spaceId) {
-  try {
-    await apiCall('/api/checkins/checkin', {
-      method: 'POST',
-      body: JSON.stringify({ spaceId }),
-    })
-    alert('Checked in successfully!')
-    await loadActiveCheckin()
-    loadSpaces(currentPage)
-  } catch (error) {
-    alert('Error checking in: ' + error.message)
-  }
-}
-
-async function handleToggleFavorite(spaceId, buttonElement) {
-  try {
-    const isFavorite = favoriteSpaceIds.has(spaceId)
-    if (isFavorite) {
-      await apiCall(`/api/favorites/remove/${spaceId}`, { method: 'DELETE' })
-      favoriteSpaceIds.delete(spaceId)
-      buttonElement.classList.remove('is-favorite')
-      buttonElement.textContent = 'Add Favourite'
-    } else {
-      await apiCall('/api/favorites/add', {
-        method: 'POST',
-        body: JSON.stringify({ spaceId }),
-      })
-      favoriteSpaceIds.add(spaceId)
-      buttonElement.classList.add('is-favorite')
-      buttonElement.textContent = 'Remove Favourite'
-    }
-  } catch (error) {
-    alert('Error: ' + error.message)
-  }
-}
-
-function populateBuildingFilter() {
-  const buildings = [...new Set(allSpaces.map((s) => s.building))]
-  buildingFilter.innerHTML = '<option value="">All Buildings</option>'
-  buildings.forEach((building) => {
-    const option = document.createElement('option')
-    option.value = building
-    option.textContent = building
-    buildingFilter.appendChild(option)
-  })
-}
 
 init()
