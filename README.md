@@ -37,7 +37,7 @@ The application is deployed on Vercel with MongoDB Atlas for the database.
 
 ## Slides
 
-**Presentation slides:** [Click here to view the presentation](https://drive.google.com/file/d/1G7L-91pV2FmZOG-z5xNse2CdvShKWhRF/view?usp=sharing)
+**Presentation slides:** [Click here to view the presentation](https://docs.google.com/presentation/d/1mRB-7Gta1EydN0eQktJSSHPJhRvzt30bx0osyi-UYf8/edit?slide=id.g3c9ac656289_5_16#slide=id.g3c9ac656289_5_16)
 
 ---
 
