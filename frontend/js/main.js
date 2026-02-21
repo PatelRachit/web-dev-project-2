@@ -65,7 +65,7 @@ export async function apiCall(endpoint, options = {}) {
     ...options,
     headers: { ...defaultOptions.headers, ...options.headers },
   })
-
+// <!-- If the server ever returns HTML or an empty body (500, 502, etc.), response.json() will itself throw.Therefore, amke it more defensive with -->
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.error || error.message || 'Request failed')
