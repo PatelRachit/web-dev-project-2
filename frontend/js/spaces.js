@@ -107,6 +107,7 @@ function createSpaceCard(space) {
     space.currentOccupancy || 0,
     space.capacity,
   )
+  <!-- What happens with the capacity is 0 or missing, will this return an NaN and so it would be good to create a helper function-->
   const pct = Math.round(((space.currentOccupancy || 0) / space.capacity) * 100)
   const statusLabel =
     occupancyLevel === 'low'
